@@ -5,7 +5,7 @@
   .brand, .sidebar-bottom { display: none; }
   .sidebar nav { width: 100%; grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); }
   .sidebar nav a { justify-content: center; flex-direction: column; gap: 1px; padding: 5px; font-size: 10px; }
-  .sidebar nav a span { font-size: 16px; }
+  .sidebar nav a .nav-icon, .sidebar nav a .nav-icon svg { width: 17px; height: 17px; }
   .scroll-to-top { bottom: 82px; }
   .undo-toast { bottom: 136px; }
 }
@@ -28,6 +28,8 @@
   .work-section { padding-top: 34px; }
   .entry-actions { opacity: 1; }
   .import-summary { grid-template-columns: 1fr; }
+  .import-entry-row { grid-template-columns: 46px minmax(0, 1fr); }
+  .import-entry-row .select-menu { grid-column: 1 / -1; }
   .import-modal fieldset { align-items: flex-start; flex-direction: column; gap: 9px; }
   .home-hero, .page-heading { align-items: flex-start; flex-direction: column; }
   .stat-grid, .home-columns { grid-template-columns: 1fr; }

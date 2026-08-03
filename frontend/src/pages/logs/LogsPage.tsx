@@ -20,7 +20,10 @@ export function LogsPage() {
     const requested = searchParams.get('type')
     return requested === 'TODO' || requested === 'DONE' || requested === 'NOTE' ? requested : 'ALL'
   })
-  const [projectId, setProjectId] = useState<number | 'ALL'>('ALL')
+  const [projectId, setProjectId] = useState<number | 'ALL'>(() => {
+    const requested = searchParams.get('project')
+    return requested && /^\d+$/.test(requested) ? Number(requested) : 'ALL'
+  })
   const [projects, setProjects] = useState<Project[]>([])
   const [period, setPeriod] = useState<Period>('30D')
   const [customFrom, setCustomFrom] = useState(addDays(today, -29))
@@ -105,7 +108,13 @@ export function LogsPage() {
       <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이 기간의 기록에서 검색…" />
       <SelectMenu className="project-filter-menu" ariaLabel="프로젝트 필터" value={String(projectId)}
         options={[{ value: 'ALL', label: '모든 프로젝트' }, ...projects.map((project) => ({ value: String(project.id), label: `${project.name}${project.archived ? ' (보관됨)' : ''}`, color: project.color, muted: project.archived }))]}
-        onChange={(value) => setProjectId(value === 'ALL' ? 'ALL' : Number(value))} />
+        onChange={(value) => {
+          const nextProject = value === 'ALL' ? 'ALL' : Number(value)
+          setProjectId(nextProject)
+          const next = new URLSearchParams(searchParams)
+          if (nextProject === 'ALL') next.delete('project'); else next.set('project', String(nextProject))
+          setSearchParams(next, { replace: true })
+        }} />
       <div>{(['ALL', 'TODO', 'DONE', 'NOTE'] as const).map((filter) => <button className={type === filter ? 'active' : ''} onClick={() => {
         setType(filter)
         const next = new URLSearchParams(searchParams)

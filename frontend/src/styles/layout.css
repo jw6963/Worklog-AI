@@ -13,7 +13,8 @@
 .brand span { margin-left: 2px; color: #4b8063; }
 .sidebar nav { display: grid; gap: 4px; }
 .sidebar nav a { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 6px; color: #65645f; font-size: 14px; font-weight: 500; text-decoration: none; }
-.sidebar nav a span { width: 18px; color: #8c8b87; text-align: center; }
+.sidebar nav a .nav-icon { display: grid; width: 18px; height: 18px; flex: 0 0 18px; color: #8c8b87; place-items: center; }
+.sidebar nav a .nav-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .sidebar nav a:hover { background: #ededeb; }
 .sidebar nav a.active { color: #2f2f2b; background: #e7e7e4; font-weight: 600; }
 .sidebar-bottom { display: flex; align-items: center; gap: 10px; margin-top: auto; padding: 12px 8px 0; border-top: 1px solid #e1e1de; }

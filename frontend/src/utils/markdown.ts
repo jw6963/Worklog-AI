@@ -60,6 +60,15 @@ export function splitImportItems(content?: string) {
   return content.split(/^\s*---\s*$/m).map((item) => item.trim()).filter(Boolean)
 }
 
+export function getImportEntries(preview: ImportPreview) {
+  return (['TODO', 'DONE', 'NOTE'] as ItemType[]).flatMap((type) =>
+    splitImportItems(preview.sections[type]).map((content, index) => ({
+      key: `${type}-${index}`,
+      type,
+      content,
+    })))
+}
+
 export function createMarkdownExport(date: string, grouped: Partial<Record<ItemType, WorkItem[]>>) {
   const labels: Record<ItemType, string> = { TODO: 'To Do', DONE: 'Done', NOTE: 'Notes' }
   return [

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { archiveProject, createProject, deleteProject, fetchProjects, updateProject } from '../../api/projects'
 import type { Project } from '../../types'
 
@@ -68,7 +69,9 @@ export function ProjectsPage() {
           <div className="project-row-actions"><button onClick={() => setEditingId(null)}>취소</button><button className="save" onClick={() => void saveEdit()}>저장</button></div>
         </article>
         : <article className={project.archived ? 'archived' : ''} key={project.id}>
-          <i style={{ background: project.color }} /><div><strong>{project.name}</strong><span>{project.archived ? '보관됨' : '사용 중'} · 연결 항목 {project.itemCount ?? 0}개</span></div>
+          <i style={{ background: project.color }} /><Link className="project-overview-link" to={`/logs?project=${project.id}`} aria-label={`${project.name} 프로젝트 기록 모아보기`}>
+            <span><strong>{project.name}</strong><small>{project.archived ? '보관됨' : '사용 중'} · 연결 항목 {project.itemCount ?? 0}개</small></span><b aria-hidden="true">기록 보기 →</b>
+          </Link>
           <div className="project-row-actions"><button onClick={() => beginEdit(project)}>수정</button><button onClick={() => void toggle(project)}>{project.archived ? '복원' : '보관'}</button><button className="delete-project" onClick={() => void remove(project)}>삭제</button></div>
         </article>)}
       {!projects.length && <div className="empty-state"><strong>프로젝트가 없습니다.</strong><span>첫 프로젝트를 만들어 일지에 연결해 보세요.</span></div>}
