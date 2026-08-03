@@ -3,7 +3,7 @@ import { useAuth } from '../../auth/useAuth'
 import { localDate } from '../../utils/date'
 import { ScrollToTop } from './ScrollToTop'
 
-type IconName = 'home' | 'edit' | 'logs' | 'project' | 'review' | 'settings' | 'users'
+type IconName = 'home' | 'edit' | 'logs' | 'project' | 'review' | 'settings' | 'guide' | 'users'
 
 function NavIcon({ name }: { name: IconName }) {
   const paths: Record<IconName, React.ReactNode> = {
@@ -13,6 +13,7 @@ function NavIcon({ name }: { name: IconName }) {
     project: <><path d="M4 6.5h6l2 2h8v10H4z" /><path d="M4 9h16" /></>,
     review: <><circle cx="12" cy="12" r="8" /><path d="M12 7v5l3 2M4.5 5.5 3 4" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" /></>,
+    guide: <><circle cx="12" cy="12" r="9" /><path d="M9.7 9a2.4 2.4 0 1 1 3.8 1.9c-1 .7-1.5 1.2-1.5 2.6M12 17.5h.01" /></>,
     users: <><circle cx="9" cy="8" r="3" /><path d="M3.5 20v-2a5.5 5.5 0 0 1 11 0v2M16 6.5a3 3 0 0 1 0 5.8M17 15a5 5 0 0 1 3.5 4.8" /></>,
   }
   return <span className="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg></span>
@@ -37,6 +38,7 @@ export function AppShell() {
         <NavLink to="/projects"><NavIcon name="project" />프로젝트</NavLink>
         <NavLink to="/reviews"><NavIcon name="review" />회고</NavLink>
         <NavLink to="/settings"><NavIcon name="settings" />설정</NavLink>
+        <NavLink to="/guide"><NavIcon name="guide" />사용 가이드</NavLink>
         {user?.role === 'ADMIN' && <NavLink to="/users"><NavIcon name="users" />사용자</NavLink>}
       </nav>
       <div className="sidebar-bottom">

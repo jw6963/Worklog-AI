@@ -10,7 +10,7 @@ public class SpaWebConfig implements WebMvcConfigurer {
     public void addViewControllers(ViewControllerRegistry registry) {
         for (String path : new String[]{
                 "/login", "/app", "/logs", "/logs/{date}", "/reviews", "/projects",
-                "/settings", "/users", "/change-password"}) {
+                "/settings", "/guide", "/users", "/change-password"}) {
             registry.addViewController(path).setViewName("forward:/index.html");
         }
     }

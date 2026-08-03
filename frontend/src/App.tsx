@@ -16,6 +16,7 @@ const LandingPage = lazy(() => import('./pages/auth/LandingPage').then((module) 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage').then((module) => ({ default: module.LoginPage })))
 const ChangePasswordPage = lazy(() => import('./pages/auth/ChangePasswordPage').then((module) => ({ default: module.ChangePasswordPage })))
 const UsersPage = lazy(() => import('./pages/admin/UsersPage').then((module) => ({ default: module.UsersPage })))
+const GuidePage = lazy(() => import('./pages/guide/GuidePage').then((module) => ({ default: module.GuidePage })))
 
 function App() {
   return <BrowserRouter>
@@ -33,6 +34,7 @@ function App() {
               <Route path="reviews" element={<ReviewsPage />} />
               <Route path="projects" element={<ProjectsPage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="guide" element={<GuidePage />} />
               <Route element={<AdminRoute />}>
                 <Route path="users" element={<UsersPage />} />
               </Route>

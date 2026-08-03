@@ -1,0 +1,17 @@
+.guide-layout { display: grid; grid-template-columns: 170px minmax(0, 1fr); align-items: start; gap: 46px; }
+.guide-toc { position: sticky; top: 32px; display: grid; gap: 3px; padding: 8px; border: 1px solid #e7e7e4; border-radius: 9px; background: #fafaf9; }
+.guide-toc a { padding: 8px 9px; border-radius: 6px; color: #787774; font-size: 11px; text-decoration: none; }
+.guide-toc a:hover { color: #315f45; background: #edf2ee; }
+.guide-content { display: grid; gap: 18px; min-width: 0; }
+.guide-content section { scroll-margin-top: 24px; padding: 24px; border: 1px solid #e7e7e4; border-radius: 10px; background: #fff; }
+.guide-content section > span { color: #4b8063; font-size: 9px; font-weight: 700; letter-spacing: .12em; }
+.guide-content h2 { margin: 5px 0 12px; font-size: 19px; }
+.guide-content p, .guide-content li { color: #65645f; font-size: 12px; line-height: 1.75; }
+.guide-content ul { margin: 12px 0; padding-left: 19px; }
+.guide-content section > a { display: inline-flex; margin-top: 7px; color: #397151; font-size: 11px; font-weight: 600; text-decoration: none; }
+.guide-content code { padding: 2px 4px; border-radius: 4px; color: #565550; background: #f0f0ed; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .92em; }
+.guide-content pre { max-width: 100%; overflow-x: auto; margin: 16px 0; padding: 17px; border-radius: 8px; color: #e8ebe9; background: #30322f; line-height: 1.6; }
+.guide-content pre code { padding: 0; color: inherit; background: transparent; font-size: 11px; }
+.guide-callout { margin: 14px 0; padding: 13px 15px; border-left: 3px solid #6d977e; border-radius: 0 7px 7px 0; background: #f3f7f4; }
+.guide-callout strong { font-size: 11px; }
+.guide-callout p { margin: 4px 0 0; font-size: 11px; }
