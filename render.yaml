@@ -10,16 +10,10 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: DB_URL
-        fromDatabase: { name: worklog-db, property: connectionString }
+        sync: false
       - key: WORKLOG_ADMIN_USERNAME
         value: admin
       - key: WORKLOG_ADMIN_PASSWORD
         sync: false
       - key: WORKLOG_ADMIN_DISPLAY_NAME
         value: Worklog Admin
-
-databases:
-  - name: worklog-db
-    plan: free
-    databaseName: worklog
-    user: worklog

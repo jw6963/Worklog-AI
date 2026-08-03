@@ -73,19 +73,20 @@ H2 데이터 파일은 `C:\worklog-ai\backend\data\worklog.mv.db`에 저장됩�
 동일한 소스가 환경에 따라 다르게 실행됩니다.
 
 - 로컬 기본 프로필 `local`: Vite 개발 서버 + Spring Boot + H2
-- Render 프로필 `prod`: Spring Boot가 React 정적 파일과 API를 함께 제공 + PostgreSQL
+- Render 프로필 `prod`: Spring Boot가 React 정적 파일과 API를 함께 제공 + Neon PostgreSQL
 
 배포 절차:
 
 1. `feature/deployment`을 `develop`에 병합해 CI를 확인합니다.
 2. `develop`에서 `main`으로 PR을 병합합니다.
-3. Render Dashboard에서 **New > Blueprint**를 선택합니다.
-4. GitHub 비공개 저장소 `jw6963/Worklog-AI` 접근을 허용합니다.
-5. 저장소 루트의 `render.yaml`을 선택합니다.
-6. 생성 과정에서 `WORKLOG_ADMIN_PASSWORD`에 강한 초기 관리자 비밀번호를 입력합니다.
-7. 배포 완료 후 발급된 `onrender.com` 주소로 접속합니다.
+3. Neon에서 PostgreSQL 프로젝트를 만들고 connection string을 복사합니다.
+4. Render Dashboard에서 **New > Blueprint**를 선택합니다.
+5. GitHub 비공개 저장소 `jw6963/Worklog-AI` 접근을 허용합니다.
+6. 저장소 루트의 `render.yaml`을 선택합니다.
+7. 생성 과정에서 `DB_URL`과 `WORKLOG_ADMIN_PASSWORD`를 Secret으로 입력합니다.
+8. 배포 완료 후 발급된 `onrender.com` 주소로 접속합니다.
 
-`main`의 GitHub Actions 검사가 통과한 커밋만 Render가 자동 배포합니다. 무료 PostgreSQL은 테스트용이며 만료 정책이 있으므로 계속 사용할 때는 유료 데이터베이스로 전환하고 JSON 백업도 별도로 보관하세요.
+`main`의 GitHub Actions 검사가 통과한 커밋만 Render가 자동 배포합니다. 자세한 절차는 [DEPLOYMENT.md](DEPLOYMENT.md)를 참고하세요. 무료 데이터베이스와 별개로 JSON 백업도 보관해야 합니다.
 
 운영 배포는 Docker 다단계 빌드로 프론트엔드와 백엔드를 하나의 실행 JAR에 포함합니다. 로컬에는 Docker가 없어도 기존 IntelliJ `Worklog AI` 실행 설정을 그대로 사용할 수 있습니다.
 
