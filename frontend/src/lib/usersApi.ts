@@ -1,4 +1,4 @@
-const API = 'http://localhost:8080/api/admin/users'
+const API = '/api/admin/users'
 const request = (url: string, init: RequestInit = {}) => fetch(url, { ...init, credentials: 'include' })
 
 export type ManagedUser = {

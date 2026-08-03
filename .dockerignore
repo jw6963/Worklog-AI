@@ -1,0 +1,14 @@
+.git
+.idea
+.run
+backend/.idea
+frontend/.idea
+backend/data
+backend/target
+frontend/node_modules
+frontend/dist
+*.log
+*.zip
+.env
+.env.*
+backend/.env.properties

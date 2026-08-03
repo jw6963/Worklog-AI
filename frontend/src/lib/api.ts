@@ -1,6 +1,6 @@
 import type { ItemType, Project, WorkItem } from '../types'
 
-const API = 'http://localhost:8080/api/items'
+const API = '/api/items'
 
 const apiFetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
   const response = await window.fetch(input, { ...init, credentials: 'include' })
@@ -97,13 +97,13 @@ export async function updateItemProject(id: number, projectId: number | null): P
 }
 
 export async function fetchProjects(): Promise<Project[]> {
-  const response = await apiFetch('http://localhost:8080/api/projects')
+  const response = await apiFetch('/api/projects')
   if (!response.ok) throw new Error('프로젝트 조회 실패')
   return response.json()
 }
 
 export async function createProject(name: string, color: string): Promise<Project> {
-  const response = await apiFetch('http://localhost:8080/api/projects', {
+  const response = await apiFetch('/api/projects', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, color }),
   })
   if (!response.ok) throw new Error('프로젝트 생성 실패')
@@ -111,7 +111,7 @@ export async function createProject(name: string, color: string): Promise<Projec
 }
 
 export async function archiveProject(id: number, archived: boolean): Promise<Project> {
-  const response = await apiFetch(`http://localhost:8080/api/projects/${id}/archived`, {
+  const response = await apiFetch(`/api/projects/${id}/archived`, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ archived }),
   })
   if (!response.ok) throw new Error('프로젝트 보관 변경 실패')
@@ -119,7 +119,7 @@ export async function archiveProject(id: number, archived: boolean): Promise<Pro
 }
 
 export async function updateProject(id: number, name: string, color: string): Promise<Project> {
-  const response = await apiFetch(`http://localhost:8080/api/projects/${id}`, {
+  const response = await apiFetch(`/api/projects/${id}`, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, color }),
   })
   if (!response.ok) throw new Error('프로젝트 수정 실패')
@@ -127,7 +127,7 @@ export async function updateProject(id: number, name: string, color: string): Pr
 }
 
 export async function deleteProject(id: number, detachItems: boolean) {
-  const response = await apiFetch(`http://localhost:8080/api/projects/${id}?detachItems=${detachItems}`, { method: 'DELETE' })
+  const response = await apiFetch(`/api/projects/${id}?detachItems=${detachItems}`, { method: 'DELETE' })
   if (!response.ok) throw new Error('프로젝트 삭제 실패')
 }
 

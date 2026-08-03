@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 
-const AUTH_API = 'http://localhost:8080/api/auth'
+const AUTH_API = '/api/auth'
 
 export type AuthUser = { username: string; displayName: string; role: 'ADMIN' | 'USER'; mustChangePassword: boolean }
 
