@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Worklog AI" type="CompoundRunConfigurationType">
+    <toRun name="Backend (Spring Boot)" type="MavenRunConfiguration" />
+    <toRun name="Frontend (Vite)" type="js.build_tools.npm" />
+    <method v="2" />
+  </configuration>
+</component>

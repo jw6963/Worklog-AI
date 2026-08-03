@@ -1,0 +1,70 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.env
+*.env.*
+!*.env.example
+backend/.env.properties
+!backend/.env.properties.example
+
+# Databases and user data
+backend/data/
+*.mv.db
+*.lock.db
+*.trace.db
+*.h2.db
+*.sqlite
+*.sqlite3
+*.db-journal
+worklog-backup-*.json
+backup/
+backups/
+
+# Credentials and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.cer
+
+# Build output and dependencies
+backend/target/
+frontend/node_modules/
+frontend/dist/
+coverage/
+*.tsbuildinfo
+
+# Logs and runtime files
+*.log
+logs/
+*.pid
+hs_err_pid*
+
+# IDE user-specific files (shared .run configurations are kept)
+.idea/
+backend/.idea/
+frontend/.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# OS and temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Local archives
+*.zip
+*.7z
+*.tar
+*.tar.gz
