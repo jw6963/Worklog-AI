@@ -1,0 +1,26 @@
+.review-period { display: flex; padding: 3px; border-radius: 7px; background: #efefed; }
+.review-period button { padding: 7px 13px; border: 0; border-radius: 5px; color: #787774; background: transparent; font-size: 12px; }
+.review-period button.active { color: #37352f; background: #fff; box-shadow: 0 1px 4px #0001; font-weight: 600; }
+.review-nav { display: flex; align-items: center; gap: 7px; margin-bottom: 18px; }
+.review-nav button { padding: 7px 10px; border: 1px solid #e1e1de; border-radius: 6px; color: #65645f; background: #fff; font-size: 11px; }
+.review-nav strong { min-width: 240px; font-size: 12px; text-align: center; }
+.review-nav button:last-child { margin-left: 3px; }
+.review-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.review-stats article { display: grid; min-height: 120px; padding: 17px; border: 1px solid #e7e7e4; border-radius: 9px; background: #fff; }
+.review-stats span { color: #8b8a86; font-size: 11px; }
+.review-stats strong { align-self: end; font-size: 31px; }
+.review-stats .rate i { display: block; height: 4px; margin-top: 6px; overflow: hidden; border-radius: 99px; background: #ededeb; }
+.review-stats .rate b { display: block; height: 100%; background: #4b8063; }
+.review-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 12px; margin-top: 12px; }
+.review-panel { min-width: 0; padding: 21px; border: 1px solid #e7e7e4; border-radius: 9px; background: #fff; }
+.achievement-list { margin: 0; padding: 0; list-style: none; }
+.achievement-list li + li { border-top: 1px solid #efefed; }
+.achievement-list a { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; color: #4b4a46; font-size: 12px; text-decoration: none; }
+.achievement-list a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.achievement-list small { color: #9b9a97; white-space: nowrap; }
+.keyword-cloud { display: flex; flex-wrap: wrap; gap: 7px; }
+.keyword-cloud span { display: flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 99px; color: #565550; background: #f1f1ef; font-size: 11px; }
+.keyword-cloud b { color: #4b8063; font-size: 9px; }
+.rule-summary { margin-top: 24px; padding: 14px; border-radius: 7px; background: #f5f7f3; }
+.rule-summary strong { color: #4b8063; font-size: 10px; letter-spacing: .05em; }
+.rule-summary p { margin: 7px 0 0; color: #65645f; font-size: 12px; line-height: 1.65; }

@@ -40,7 +40,7 @@ coverage/
 
 # Logs and runtime files
 *.log
-logs/
+/logs/
 *.pid
 hs_err_pid*
 

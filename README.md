@@ -21,6 +21,18 @@
 
 공개 회원가입은 제공하지 않습니다. 관리자가 사용자 관리 화면에서 계정을 만들며, 새 사용자는 임시 비밀번호를 변경한 뒤 자신의 기록 공간을 사용합니다.
 
+## 프로젝트 구조
+
+```text
+Worklog-AI/
+├─ frontend/   React 화면, 기능별 API·페이지·컴포넌트·스타일
+├─ backend/    Spring Boot API, 도메인별 Java 패키지
+├─ Dockerfile
+└─ render.yaml
+```
+
+세부 구조는 `frontend/README.md`와 `backend/README.md`를 참고하세요.
+
 ## 실행 방법
 
 IntelliJ의 `Worklog AI` Run Configuration을 실행하거나 PowerShell 창 두 개에서 다음 명령을 실행합니다.

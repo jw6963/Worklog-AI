@@ -1,0 +1,50 @@
+.home-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; margin: 10px 0 34px; }
+.home-hero h1, .page-heading h1 { margin: 0 0 9px; font-size: clamp(34px, 5vw, 48px); }
+.home-hero p, .page-heading p { margin: 0; color: #787774; }
+.primary-link { display: inline-flex; align-items: center; gap: 14px; padding: 11px 15px; border-radius: 7px; color: white; background: #37352f; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.primary-link:hover { background: #242421; }
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stat-card { display: grid; min-height: 138px; padding: 19px; border: 1px solid #e7e7e4; border-radius: 10px; background: #fff; }
+.stat-card > span { color: #787774; font-size: 12px; font-weight: 600; }
+.stat-card strong { align-self: end; font-size: 39px; letter-spacing: -.04em; }
+.stat-card small { margin-top: 2px; color: #9b9a97; }
+.stat-card.green { background: #f3f8f4; }
+.stat-card.green strong { color: #397151; }
+.stat-card.amber { background: #faf7ef; }
+.stat-card.amber strong { color: #8a6a31; }
+.home-columns { display: grid; grid-template-columns: 1.05fr .95fr; gap: 14px; margin-top: 14px; }
+.home-panel { padding: 22px; border: 1px solid #e7e7e4; border-radius: 10px; background: #fff; }
+.panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.panel-heading > div > span { color: #9b9a97; font-size: 9px; font-weight: 700; letter-spacing: .12em; }
+.panel-heading h2 { margin: 4px 0 0; font-size: 20px; }
+.panel-heading > a { color: #787774; font-size: 11px; text-decoration: none; }
+.week-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.week-summary div { display: grid; gap: 2px; }
+.week-summary strong { font-size: 27px; }
+.week-summary span { color: #9b9a97; font-size: 11px; }
+.progress-label { display: flex; justify-content: space-between; margin-top: 22px; color: #787774; font-size: 11px; }
+.progress-label strong { color: #397151; }
+.progress { height: 5px; margin-top: 7px; overflow: hidden; border-radius: 99px; background: #ededeb; }
+.progress i { display: block; height: 100%; border-radius: inherit; background: #4b8063; }
+.stale-panel ul { margin: 0; padding: 0; list-style: none; }
+.stale-panel li + li { border-top: 1px solid #efefed; }
+.stale-panel li { display: flex; align-items: center; gap: 8px; }
+.stale-panel li a { display: flex; min-width: 0; flex: 1; justify-content: space-between; gap: 12px; padding: 9px 0; color: #4b4a46; font-size: 12px; text-decoration: none; }
+.stale-panel li a > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stale-panel small { color: #9b9a97; white-space: nowrap; }
+.quick-complete { display: grid; width: 21px; height: 21px; padding: 0; border: 1px solid #cfcec9; border-radius: 50%; place-items: center; color: transparent; background: #fff; font-size: 11px; }
+.quick-complete:hover { border-color: #4b8063; color: #fff; background: #4b8063; }
+.recent-panel { margin-top: 14px; }
+.recent-list { display: grid; }
+.recent-list > a { display: grid; grid-template-columns: 45px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 12px 4px; border-top: 1px solid #efefed; color: inherit; text-decoration: none; }
+.recent-list > a:hover { background: #fafaf9; }
+.date-tile { display: grid; height: 44px; border-radius: 7px; place-items: center; align-content: center; background: #f1f1ef; }
+.date-tile strong { font-size: 17px; line-height: 1; }
+.date-tile span { margin-top: 2px; color: #9b9a97; font-size: 9px; }
+.recent-list > a > div:nth-child(2) { min-width: 0; }
+.recent-list > a > div:nth-child(2) > strong { font-size: 13px; }
+.recent-list p { margin: 4px 0 0; overflow: hidden; color: #8b8a86; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.record-counts { display: flex; align-items: center; gap: 10px; color: #9b9a97; font-size: 10px; }
+.record-counts b { margin-left: 5px; color: #65645f; font-size: 14px; }
+.panel-empty { margin: 8px 0; color: #aaa9a5; font-size: 12px; }
+
