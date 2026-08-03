@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProdDataSourceConfigTests {
     @Test
-    void convertsNeonConnectionUrlToJdbcWithoutDroppingSslOptions() {
+    void convertsPostgresConnectionUrlToJdbcWithoutDroppingSslOptions() {
         var connection = ProdDataSourceConfig.parse(
                 "postgresql://worklog:p%40ss@ep-example.neon.tech/worklog?sslmode=require&channel_binding=require");
 

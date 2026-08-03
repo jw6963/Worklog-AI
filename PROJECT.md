@@ -116,7 +116,7 @@
 ### 저장소와 배포
 
 - 로컬 개발: H2 파일 데이터베이스
-- 운영: Neon PostgreSQL
+- 운영 체험: Render PostgreSQL
 - 웹 애플리케이션: Render Docker Web Service
 - GitHub Actions: 프론트 lint·build와 백엔드 test
 - Docker 다단계 빌드로 React 결과물을 Spring Boot JAR에 포함
@@ -159,11 +159,12 @@ Worklog-AI/
 남은 배포 작업:
 
 1. `feature/deployment` 변경을 검토하고 `develop`, `main`에 병합
-2. Neon 무료 PostgreSQL 프로젝트 생성
-3. Render Blueprint 생성 및 Secret 입력
+2. Render Blueprint에서 Web Service와 무료 PostgreSQL 생성
+3. 최초 관리자 비밀번호 Secret 입력
 4. 최초 관리자 로그인과 비밀번호 변경 확인
 5. 기록 저장 및 재배포 후 데이터 유지 확인
 6. JSON 백업 파일을 로컬과 허용된 클라우드에 보관
+7. 무료 DB 만료 전 유료 전환 또는 외부 PostgreSQL 이전 여부 결정
 
 ## 다음 로드맵
 

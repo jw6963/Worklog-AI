@@ -1,42 +1,40 @@
 # Worklog AI 배포
 
-운영 환경은 Render 무료 Web Service와 Neon 무료 PostgreSQL을 사용합니다.
-로컬 개발은 기존처럼 H2 파일 데이터베이스를 사용하므로 운영 데이터와 섞이지 않습니다.
+현재 운영 체험 환경은 Render 무료 Web Service와 Render 무료 PostgreSQL을 사용한다. 앱과 데이터베이스를 Render Blueprint 하나로 생성하므로 별도의 데이터베이스 서비스 가입이 필요 없다.
 
-## 1. Neon 데이터베이스 생성
+> Render 무료 PostgreSQL은 생성 후 30일이 지나면 만료된다. 만료 전에 전체 JSON 백업을 내려받고, 계속 사용할 경우 Render 유료 DB로 전환하거나 외부 PostgreSQL로 이전해야 한다.
 
-1. [Neon](https://console.neon.tech/)에 가입하고 새 프로젝트를 생성합니다.
-2. 데이터베이스 이름은 `worklog`처럼 알아보기 쉽게 지정합니다.
-3. **Connect** 화면에서 PostgreSQL connection string을 복사합니다.
-4. 연결 문자열은 비밀번호를 포함하므로 Git이나 문서에 저장하지 않습니다.
+## 1. 배포 전 준비
 
-연결 문자열은 다음과 같은 형태입니다.
+1. GitHub의 `main` 브랜치에 배포할 코드가 반영됐는지 확인한다.
+2. Render에 가입하고 GitHub 계정을 연결한다.
+3. 비공개 저장소 `jw6963/Worklog-AI`에 대한 접근을 허용한다.
 
-```text
-postgresql://사용자:비밀번호@호스트/데이터베이스?sslmode=require&channel_binding=require
-```
+## 2. Blueprint 생성
 
-## 2. Render 배포
+1. Render Dashboard에서 **New > Blueprint**를 선택한다.
+2. `jw6963/Worklog-AI` 저장소를 선택한다.
+3. 저장소 루트의 `render.yaml`을 사용한다.
+4. Blueprint가 다음 리소스를 함께 생성하는지 확인한다.
+   - `worklog-ai`: Docker Web Service
+   - `worklog-db`: PostgreSQL database
+5. 생성 과정에서 `WORKLOG_ADMIN_PASSWORD`에 최초 관리자용 강력한 임시 비밀번호를 입력한다.
 
-1. GitHub에서 배포 변경을 `main` 브랜치에 병합합니다.
-2. Render Dashboard에서 **New > Blueprint**를 선택합니다.
-3. 비공개 GitHub 저장소 `jw6963/Worklog-AI`를 연결합니다.
-4. 저장소 루트의 `render.yaml`을 사용합니다.
-5. 생성 과정에서 다음 Secret 값을 입력합니다.
-
-| 환경변수 | 값 |
-|---|---|
-| `DB_URL` | Neon에서 복사한 PostgreSQL connection string |
-| `WORKLOG_ADMIN_PASSWORD` | 최초 관리자용 강력한 임시 비밀번호 |
-
-`WORKLOG_ADMIN_USERNAME`은 기본값 `admin`을 사용합니다. 배포 후 최초 로그인에서 관리자 비밀번호를 변경합니다.
+`DB_URL`은 Blueprint가 PostgreSQL connection string으로 자동 설정한다. 직접 복사하거나 Git에 저장할 필요가 없다. 관리자 로그인 ID는 기본값 `admin`이다.
 
 ## 3. 배포 확인
 
-1. Render가 제공한 `onrender.com` 주소에 접속합니다.
-2. 관리자 계정으로 로그인하고 비밀번호를 변경합니다.
-3. 테스트 일지를 하나 저장한 다음 페이지를 새로 고쳐 데이터가 유지되는지 확인합니다.
-4. Render에서 재배포한 뒤에도 같은 기록이 남아 있는지 확인합니다.
-5. 설정 화면에서 전체 JSON 백업을 내려받아 별도 위치에 보관합니다.
+1. Render가 제공한 `onrender.com` 주소에 접속한다.
+2. 관리자 계정으로 로그인한다.
+3. 최초 로그인 안내에 따라 관리자 비밀번호를 변경한다.
+4. 테스트 일지를 저장한 후 페이지를 새로 고쳐 기록이 유지되는지 확인한다.
+5. Render에서 Web Service를 재배포한 뒤에도 같은 기록이 남아 있는지 확인한다.
+6. 설정 화면에서 전체 JSON 백업을 내려받아 로컬과 허용된 클라우드에 보관한다.
 
-무료 서비스는 첫 접속이 느릴 수 있습니다. Render와 Neon이 유휴 상태에서 깨어나는 동안 잠시 기다린 뒤 다시 접속하면 됩니다.
+무료 Web Service는 유휴 상태에서 정지되므로 첫 접속에 시간이 걸릴 수 있다.
+
+## 4. 30일 안에 결정할 일
+
+- 계속 사용: Render PostgreSQL을 유료 플랜으로 전환하거나 외부 PostgreSQL로 이전
+- 체험 종료: 전체 JSON 백업을 받은 뒤 서비스와 DB 정리
+- 어떤 경우든 무료 DB 만료 전에 마지막 JSON 백업 확인

@@ -18,7 +18,7 @@ com.worklog.backend
 ## 환경
 
 - 기본 `local` 프로필: 파일 H2 데이터베이스
-- `prod` 프로필: Render에서 사용하는 Neon PostgreSQL
+- `prod` 프로필: Render PostgreSQL
 
 ## 검증
 
