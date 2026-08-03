@@ -1,17 +1,24 @@
-import type { ImportMode, ImportPreview, ItemType } from '../../types'
-import { validDate } from '../../utils/markdown'
+import type { ImportMode, ImportPreview, ItemType, Project } from '../../types'
+import { splitImportItems, validDate } from '../../utils/markdown'
+import { SelectMenu } from '../ui/SelectMenu'
 
 type Props = {
   preview: ImportPreview
   mode: ImportMode
   importing: boolean
+  projects: Project[]
+  projectId: number | null
   onPreviewChange: (preview: ImportPreview) => void
   onModeChange: (mode: ImportMode) => void
+  onProjectChange: (projectId: number | null) => void
   onClose: () => void
   onImport: () => void
 }
 
-export function ImportModal({ preview, mode, importing, onPreviewChange, onModeChange, onClose, onImport }: Props) {
+export function ImportModal({
+  preview, mode, importing, projects, projectId,
+  onPreviewChange, onModeChange, onProjectChange, onClose, onImport,
+}: Props) {
   return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
     <section className="import-modal" role="dialog" aria-modal="true" aria-labelledby="import-title" onMouseDown={(event) => event.stopPropagation()}>
       <div className="modal-heading">
@@ -25,11 +32,22 @@ export function ImportModal({ preview, mode, importing, onPreviewChange, onModeC
         <small>{preview.dateSource === 'metadata' ? '본문 메타데이터에서 인식' : preview.dateSource === 'filename' ? '파일명에서 인식' : '현재 선택 날짜 — 필요하면 변경하세요'}</small>
       </label>
       <div className="import-summary">
-        {(['TODO', 'DONE', 'NOTE'] as ItemType[]).map((type) => <div key={type} className={preview.sections[type] ? 'recognized' : ''}>
+        {(['TODO', 'DONE', 'NOTE'] as ItemType[]).map((type) => {
+          const count = splitImportItems(preview.sections[type]).length
+          return <div key={type} className={count ? 'recognized' : ''}>
           <strong>{type === 'TODO' ? 'To Do' : type === 'DONE' ? 'Done' : 'Notes'}</strong>
-          <span>{preview.sections[type] ? `${preview.sections[type]!.length.toLocaleString()}자` : '없음'}</span>
-        </div>)}
+          <span>{count ? `${count.toLocaleString()}개 항목` : '없음'}</span>
+        </div>})}
       </div>
+      <label className="import-project-field">
+        <span>프로젝트</span>
+        <SelectMenu ariaLabel="가져올 항목의 프로젝트 선택" value={String(projectId ?? '')}
+          options={[{ value: '', label: '프로젝트 없음', muted: true }, ...projects.map((project) => ({
+            value: String(project.id), label: project.name, color: project.color,
+          }))]}
+          onChange={(value) => onProjectChange(value ? Number(value) : null)} />
+        <small>가져오는 모든 항목에 동일하게 적용됩니다.</small>
+      </label>
       <fieldset>
         <legend>같은 날짜의 기존 기록</legend>
         <label><input type="radio" checked={mode === 'append'} onChange={() => onModeChange('append')} /> 기존 기록에 추가</label>

@@ -6,7 +6,7 @@ import { WorkSection } from '../../components/editor/WorkSection'
 import { carryOverItems, createItem, deleteItem, fetchItems, updateItemType } from '../../api/workItems'
 import { fetchProjects } from '../../api/projects'
 import { addDays, localDate } from '../../utils/date'
-import { createMarkdownExport, parseMarkdown, validDate } from '../../utils/markdown'
+import { createMarkdownExport, parseMarkdown, splitImportItems, validDate } from '../../utils/markdown'
 import type { ImportMode, ImportPreview, ItemType, Project, WorkItem } from '../../types'
 
 const sections: { type: ItemType; title: string; hint: string; addLabel: string }[] = [
@@ -27,6 +27,7 @@ export function DailyLogPage() {
   const [error, setError] = useState('')
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null)
   const [importMode, setImportMode] = useState<ImportMode>('append')
+  const [importProjectId, setImportProjectId] = useState<number | null>(null)
   const [importing, setImporting] = useState(false)
   const [deletedItem, setDeletedItem] = useState<WorkItem | null>(null)
   const [previousTodoCount, setPreviousTodoCount] = useState(0)
@@ -121,19 +122,23 @@ export function DailyLogPage() {
   }
 
   async function chooseMarkdown(file: File) {
-    try { setImportPreview(parseMarkdown(file.name, await file.text(), date)); setImportMode('append') }
+    try {
+      setImportPreview(parseMarkdown(file.name, await file.text(), date))
+      setImportMode('append')
+      setImportProjectId(null)
+    }
     catch { setError('Markdown 파일을 읽지 못했습니다.') }
   }
 
   async function importMarkdown() {
     if (!importPreview || !validDate(importPreview.date)) return
     const entries = (['TODO', 'DONE', 'NOTE'] as ItemType[]).flatMap((type) =>
-      importPreview.sections[type]?.trim() ? [{ type, content: importPreview.sections[type]!.trim() }] : [])
+      splitImportItems(importPreview.sections[type]).map((content) => ({ type, content })))
     if (!entries.length) { setError('가져올 내용이 없습니다.'); return }
     setImporting(true)
     try {
       if (importMode === 'replace') await Promise.all((await fetchItems(importPreview.date)).map((item) => deleteItem(item.id)))
-      await Promise.all(entries.map((entry) => createItem(importPreview.date, entry.type, entry.content)))
+      await Promise.all(entries.map((entry) => createItem(importPreview.date, entry.type, entry.content, importProjectId)))
       const importedDate = importPreview.date
       setImportPreview(null); setError('')
       if (date === importedDate) await load(importedDate)
@@ -172,6 +177,7 @@ export function DailyLogPage() {
         onProjectChange={(projectId) => setDraftProjects((current) => ({ ...current, [section.type]: projectId }))} />)}
     </section>
     {importPreview && <ImportModal preview={importPreview} mode={importMode} importing={importing}
+      projects={projects} projectId={importProjectId} onProjectChange={setImportProjectId}
       onPreviewChange={setImportPreview} onModeChange={setImportMode} onClose={() => setImportPreview(null)}
       onImport={() => void importMarkdown()} />}
     {deletedItem && <div className="undo-toast"><span>기록을 삭제했습니다.</span><button onClick={() => void undoDelete()}>실행 취소</button></div>}

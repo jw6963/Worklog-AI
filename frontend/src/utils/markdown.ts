@@ -55,6 +55,11 @@ export function parseMarkdown(fileName: string, source: string, selectedDate: st
   return { fileName, date, dateSource, sections }
 }
 
+export function splitImportItems(content?: string) {
+  if (!content?.trim()) return []
+  return content.split(/^\s*---\s*$/m).map((item) => item.trim()).filter(Boolean)
+}
+
 export function createMarkdownExport(date: string, grouped: Partial<Record<ItemType, WorkItem[]>>) {
   const labels: Record<ItemType, string> = { TODO: 'To Do', DONE: 'Done', NOTE: 'Notes' }
   return [
