@@ -7,7 +7,16 @@ export type BackupData = {
   schemaVersion: number
   exportedAt?: string
   projects?: Array<{ id: number; name: string; color: string; archived: boolean }>
-  items: Array<{ workDate: string; type: ItemType; content: string; projectId?: number | null }>
+  items: Array<{
+    workDate: string
+    type: ItemType
+    content: string
+    projectId?: number | null
+    flowId?: string | null
+    carriedToDate?: string | null
+    flowCurrentDate?: string | null
+    flowCompletedDate?: string | null
+  }>
 }
 
 export async function fetchBackup(): Promise<BackupData> {

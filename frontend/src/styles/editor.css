@@ -1,8 +1,12 @@
 .document { min-width: 0; }
 .work-section { min-width: 0; padding: 42px 0 12px; }
-.section-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.section-heading h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
-.section-heading span { padding: 2px 7px; border-radius: 999px; color: #787774; background: #f1f1ef; font-size: 12px; }
+.section-heading { margin-bottom: 16px; }
+.section-toggle { display: flex; width: 100%; align-items: center; gap: 10px; padding: 0; border: 0; color: inherit; background: transparent; text-align: left; }
+.section-toggle h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+.section-toggle span { padding: 2px 7px; border-radius: 999px; color: #787774; background: #f1f1ef; font-size: var(--text-xs); }
+.section-toggle i { margin-left: auto; color: #9b9a97; font-size: var(--text-xs); font-style: normal; opacity: 0; transition: opacity .15s; }
+.section-toggle:hover i, .section-toggle:focus-visible i, .work-section.collapsed .section-toggle i { opacity: 1; }
+.work-section.collapsed { padding-bottom: 0; }
 
 .entries { display: grid; min-width: 0; gap: 8px; }
 .entry {

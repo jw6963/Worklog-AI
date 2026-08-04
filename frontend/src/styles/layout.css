@@ -57,6 +57,11 @@ header p { margin: 0; color: #787774; font-size: var(--text-base); }
 .date-nav .today { margin-left: 4px; background: #37352f; color: white; }
 
 .error { margin: 20px 0; padding: 12px 14px; border-radius: 6px; color: #9f3530; background: #fbe9e7; }
+.load-state { display: flex; min-height: 48px; align-items: center; justify-content: center; gap: 9px; margin: 16px 0; padding: 11px 13px; border: 1px solid #e7e7e4; border-radius: 8px; color: #787774; background: #fafaf9; font-size: var(--text-sm); }
+.load-state > i { width: 15px; height: 15px; border: 2px solid #d8d8d3; border-top-color: #4b8063; border-radius: 50%; animation: load-spin .7s linear infinite; }
+.load-state.error-state { justify-content: space-between; border-color: #ecd9d5; color: #93463e; background: #faf3f1; }
+.load-state button { padding: 6px 9px; border: 1px solid #dbbdb7; border-radius: 6px; color: #884138; background: #fff; font-size: var(--text-xs); font-weight: 600; }
+@keyframes load-spin { to { transform: rotate(360deg); } }
 .summary { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 0 2px; }
 .summary button { display: flex; align-items: center; gap: 4px; padding: 7px 10px; border: 0; border-radius: 6px; color: #787774; background: transparent; font-size: 12px; }
 .summary button:hover { color: #315f45; background: #edf3ef; }

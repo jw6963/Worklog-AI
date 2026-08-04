@@ -114,8 +114,8 @@ export function EditableWorkItem({ item, onUpdated, onChangeType, onRemove, onCa
     <RichMarkdownEditor value={draft} placeholder="기록을 수정하세요…" onChange={setDraft}
       onSubmit={() => void saveAndClose()} onCancel={cancel} autoFocus />
     <div className={`save-state ${saveState}`}>
-      <span>{saveState === 'waiting' ? '저장 대기…' : saveState === 'saving' ? '저장 중…' : saveState === 'saved' ? '저장됨' : saveState === 'error' ? '저장 실패' : 'Esc 취소 · Ctrl+Enter 완료'}</span>
-      <div><button onClick={cancel}>취소</button><button className="complete" onClick={() => void saveAndClose()}>완료</button></div>
+      <span>{saveState === 'waiting' ? '곧 자동 저장됩니다…' : saveState === 'saving' ? '저장 중…' : saveState === 'saved' ? '모든 변경사항 저장됨' : saveState === 'error' ? '저장하지 못했습니다. 다시 시도해 주세요.' : 'Esc 취소 · Ctrl+Enter 저장'}</span>
+      <div><button onClick={cancel}>취소</button><button className="complete" onClick={() => void saveAndClose()}>{saveState === 'error' ? '다시 저장' : '저장 완료'}</button></div>
     </div>
   </div>
 

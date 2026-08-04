@@ -19,19 +19,25 @@ type Props = {
   projects: Project[]
   projectId: number | null
   onProjectChange: (projectId: number | null) => void
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }
 
 export function WorkSection({
   type, title, hint, addLabel, items, draft,
   onDraftChange, onAdd, onChangeType, onRemove, onCancelCarryOver, onUpdated, projects, projectId, onProjectChange,
+  collapsed, onToggleCollapsed,
 }: Props) {
-  return <article className="work-section">
+  return <article className={`work-section ${collapsed ? 'collapsed' : ''}`}>
     <div className="section-heading">
-      <h2>{title}</h2>
-      <span>{type === 'TODO' ? items.filter((item) => !item.carriedToDate).length : items.length}</span>
+      <button type="button" className="section-toggle" aria-expanded={!collapsed} onClick={onToggleCollapsed}>
+        <h2>{title}</h2>
+        <span>{type === 'TODO' ? items.filter((item) => !item.carriedToDate).length : items.length}</span>
+        <i>{collapsed ? '펼치기 ↓' : '접기 ↑'}</i>
+      </button>
     </div>
 
-    <div className="entries">
+    {!collapsed && <><div className="entries">
       {items.map((item) => <EditableWorkItem key={item.id} item={item} onUpdated={onUpdated}
         onChangeType={onChangeType} onRemove={() => onRemove(item.id)} onCancelCarryOver={onCancelCarryOver} projects={projects} />)}
       {!items.length && <p className="empty">아직 기록이 없습니다.</p>}
@@ -45,6 +51,6 @@ export function WorkSection({
           options={[{ value: '', label: '프로젝트 없음', muted: true }, ...projects.map((project) => ({ value: String(project.id), label: project.name, color: project.color }))]}
           onChange={(value) => onProjectChange(value ? Number(value) : null)} /></label><button type="submit">{addLabel}</button></div>
       </div>
-    </form>
+    </form></>}
   </article>
 }

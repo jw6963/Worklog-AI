@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { LoadState } from '../../components/ui/LoadState'
 import { archiveProject, createProject, deleteProject, fetchProjects, updateProject } from '../../api/projects'
 import type { Project } from '../../types'
 
@@ -10,13 +11,16 @@ export function ProjectsPage() {
   const [name, setName] = useState('')
   const [color, setColor] = useState(colors[0])
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editName, setEditName] = useState('')
   const [editColor, setEditColor] = useState(colors[0])
 
   async function load() {
+    setLoading(true)
     try { setProjects(await fetchProjects()); setError('') }
     catch { setError('프로젝트를 불러오지 못했습니다.') }
+    finally { setLoading(false) }
   }
   useEffect(() => { void load() }, [])
 
@@ -53,7 +57,7 @@ export function ProjectsPage() {
 
   return <main className="page projects-page">
     <div className="page-heading"><div><span className="page-kicker">PROJECTS</span><h1>프로젝트</h1><p>여러 날짜의 기록을 프로젝트별로 연결하고 모아볼 수 있습니다.</p></div></div>
-    {error && <div className="error">{error}</div>}
+    <LoadState loading={loading} error={error} onRetry={() => void load()} />
     <form className="project-create" onSubmit={(event) => { event.preventDefault(); void add() }}>
       <input value={name} onChange={(event) => setName(event.target.value)} placeholder="새 프로젝트 이름" maxLength={80} />
       <div className="color-picker">{colors.map((value) => <button type="button" aria-label={`색상 ${value}`} className={color === value ? 'active' : ''} style={{ background: value }} onClick={() => setColor(value)} key={value} />)}</div>

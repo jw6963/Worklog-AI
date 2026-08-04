@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { StatCard } from '../../components/ui/StatCard'
+import { LoadState } from '../../components/ui/LoadState'
 import { fetchItemsRange, updateItemType } from '../../api/workItems'
 import { addDays, formatKoreanDate, localDate } from '../../utils/date'
 import type { WorkItem } from '../../types'
@@ -9,12 +10,16 @@ export function HomePage() {
   const today = localDate()
   const [items, setItems] = useState<WorkItem[]>([])
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoading(true)
     fetchItemsRange(addDays(today, -13), today)
       .then((result) => { setItems(result); setError('') })
       .catch(() => setError('홈 데이터를 불러오지 못했습니다. 백엔드를 다시 실행해 주세요.'))
+      .finally(() => setLoading(false))
   }, [today])
+  useEffect(() => { load() }, [load])
 
   const todayItems = items.filter((item) => item.workDate === today)
   const weekItems = items.filter((item) => item.workDate >= addDays(today, -6))
@@ -38,7 +43,7 @@ export function HomePage() {
       <Link className="primary-link" to={`/logs/${today}`}>오늘 일지 작성 <span>→</span></Link>
     </div>
 
-    {error && <div className="error">{error}</div>}
+    <LoadState loading={loading} error={error} onRetry={load} />
 
     <section className="stat-grid" aria-label="오늘 현황">
       <StatCard label="오늘 할 일" value={todayItems.filter((item) => item.type === 'TODO' && !item.carriedToDate).length} caption="남은 업무" />

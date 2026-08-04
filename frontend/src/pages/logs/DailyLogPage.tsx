@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../../components/layout/AppHeader'
 import { ImportModal } from '../../components/import/ImportModal'
 import { WorkSection } from '../../components/editor/WorkSection'
+import { LoadState } from '../../components/ui/LoadState'
 import { cancelCarryOver, carryOverItems, createItem, deleteItem, fetchItems, updateItemType } from '../../api/workItems'
 import { fetchProjects } from '../../api/projects'
 import { addDays, localDate } from '../../utils/date'
@@ -25,6 +26,8 @@ export function DailyLogPage() {
   const [draftProjects, setDraftProjects] = useState<Record<ItemType, number | null>>({ TODO: null, DONE: null, NOTE: null })
   const [projects, setProjects] = useState<Project[]>([])
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [collapsed, setCollapsed] = useState<Record<ItemType, boolean>>({ TODO: false, DONE: false, NOTE: false })
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null)
   const [importMode, setImportMode] = useState<ImportMode>('append')
   const [importProjectIds, setImportProjectIds] = useState<Record<string, number | null>>({})
@@ -41,8 +44,10 @@ export function DailyLogPage() {
   }, {}), [items])
 
   const load = useCallback(async (targetDate = date) => {
+    setLoading(true)
     try { setItems(await fetchItems(targetDate)); setError('') }
     catch { setError('백엔드에 연결할 수 없습니다. backend를 먼저 실행해 주세요.') }
+    finally { setLoading(false) }
   }, [date])
 
   useEffect(() => { void load() }, [load])
@@ -62,6 +67,15 @@ export function DailyLogPage() {
     fetchItems(addDays(date, -1)).then((previous) =>
       setPreviousTodoCount(previous.filter((item) => item.type === 'TODO' && !item.carriedToDate).length)).catch(() => setPreviousTodoCount(0))
   }, [date])
+  useEffect(() => {
+    const moveByShortcut = (event: KeyboardEvent) => {
+      if (!event.altKey || !['1', '2', '3'].includes(event.key)) return
+      event.preventDefault()
+      moveToComposer(sections[Number(event.key) - 1].type)
+    }
+    window.addEventListener('keydown', moveByShortcut)
+    return () => window.removeEventListener('keydown', moveByShortcut)
+  })
   if (!routeDate || !validDate(routeDate)) return <Navigate to={`/logs/${date}`} replace />
 
   async function add(type: ItemType) {
@@ -72,10 +86,12 @@ export function DailyLogPage() {
   }
 
   function moveToComposer(type: ItemType) {
-    const composer = document.getElementById(`composer-${type}`)
-    if (!composer) return
-    composer.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    window.setTimeout(() => composer.querySelector<HTMLElement>('.notion-editor')?.focus(), 350)
+    setCollapsed((current) => ({ ...current, [type]: false }))
+    window.setTimeout(() => {
+      const composer = document.getElementById(`composer-${type}`)
+      composer?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      window.setTimeout(() => composer?.querySelector<HTMLElement>('.notion-editor')?.focus(), 350)
+    })
   }
 
   async function remove(id: number) {
@@ -167,7 +183,7 @@ export function DailyLogPage() {
       onImportFile={chooseMarkdown}
       onExport={exportMarkdown}
     />
-    {error && <div className="error">{error}</div>}
+    <LoadState loading={loading} error={error} onRetry={() => void load()} />
     <section className="summary" aria-label="오늘 기록 요약">
       <button type="button" onClick={() => moveToComposer('TODO')}><strong>{grouped.TODO?.filter((item) => !item.carriedToDate).length ?? 0}</strong> 할 일 <i>↓</i></button>
       <button type="button" onClick={() => moveToComposer('DONE')}><strong>{grouped.DONE?.length ?? 0}</strong> 완료 <i>↓</i></button>
@@ -186,7 +202,8 @@ export function DailyLogPage() {
         onCancelCarryOver={(item) => void undoCarryOver(item)}
         onUpdated={(updated) => setItems((current) => current.map((item) => item.id === updated.id ? updated : item))}
         projects={projects} projectId={draftProjects[section.type]}
-        onProjectChange={(projectId) => setDraftProjects((current) => ({ ...current, [section.type]: projectId }))} />)}
+        onProjectChange={(projectId) => setDraftProjects((current) => ({ ...current, [section.type]: projectId }))}
+        collapsed={collapsed[section.type]} onToggleCollapsed={() => setCollapsed((current) => ({ ...current, [section.type]: !current[section.type] }))} />)}
     </section>
     {importPreview && <ImportModal preview={importPreview} mode={importMode} importing={importing}
       projects={projects} projectIds={importProjectIds} onProjectChange={(entryKey, projectId) =>

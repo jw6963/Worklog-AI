@@ -9,6 +9,7 @@
 .review-stats article { display: grid; min-height: 120px; padding: 17px; border: 1px solid #e7e7e4; border-radius: 9px; background: #fff; }
 .review-stats span { color: #8b8a86; font-size: 11px; }
 .review-stats strong { align-self: end; font-size: 31px; }
+.review-stats small { margin-top: 7px; color: #9b9a97; font-size: var(--text-xs); }
 .review-stats .rate i { display: block; height: 4px; margin-top: 6px; overflow: hidden; border-radius: 99px; background: #ededeb; }
 .review-stats .rate b { display: block; height: 100%; background: #4b8063; }
 .review-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 12px; margin-top: 12px; }
@@ -24,3 +25,15 @@
 .rule-summary { margin-top: 24px; padding: 14px; border-radius: 7px; background: #f5f7f3; }
 .rule-summary strong { color: #4b8063; font-size: 10px; letter-spacing: .05em; }
 .rule-summary p { margin: 7px 0 0; color: #65645f; font-size: 12px; line-height: 1.65; }
+.project-distribution { display: grid; gap: 13px; }
+.project-distribution > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 7px 12px; }
+.project-distribution span { display: flex; min-width: 0; align-items: center; gap: 7px; overflow: hidden; color: #565550; font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.project-distribution span i { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 3px; }
+.project-distribution strong { color: #787774; font-size: var(--text-xs); }
+.project-distribution b { grid-column: 1 / -1; height: 5px; overflow: hidden; border-radius: 99px; background: #efefed; }
+.project-distribution b i { display: block; height: 100%; border-radius: inherit; }
+.stale-review-list { margin: 0; padding: 0; list-style: none; }
+.stale-review-list li + li { border-top: 1px solid #efefed; }
+.stale-review-list a { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 11px 0; color: #565550; font-size: var(--text-sm); text-decoration: none; }
+.stale-review-list span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stale-review-list strong { flex: 0 0 auto; padding: 3px 7px; border-radius: 99px; color: #9a672d; background: #faf1e5; font-size: var(--text-xs); }

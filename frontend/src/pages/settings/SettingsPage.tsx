@@ -46,13 +46,14 @@ export function SettingsPage() {
   async function selectFile(file: File) {
     try {
       const data = JSON.parse(await file.text()) as BackupData
-      if (![1, 2].includes(data.schemaVersion) || !Array.isArray(data.items) || data.items.some((item) => !item.workDate || !item.type || !item.content)) throw new Error()
+      if (![1, 2, 3].includes(data.schemaVersion) || !Array.isArray(data.items) || data.items.some((item) => !item.workDate || !item.type || !item.content)) throw new Error()
       setPreview(data); setFileName(file.name); setMessage('')
     } catch { setPreview(null); setMessage('지원하지 않거나 손상된 백업 파일입니다.') }
   }
 
   async function restore() {
     if (!preview) return
+    if (!window.confirm(`현재 기록과 프로젝트를 모두 지우고 ${preview.items.length}개 기록으로 교체할까요?\n\n이 작업 전 현재 데이터를 먼저 백업하는 것을 권장합니다.`)) return
     setWorking(true)
     try {
       const restored = await restoreBackup(preview, true)

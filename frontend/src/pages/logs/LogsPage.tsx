@@ -7,6 +7,7 @@ import { fetchProjects } from '../../api/projects'
 import { addDays, formatKoreanDate, localDate } from '../../utils/date'
 import type { ItemType, Project, WorkItem } from '../../types'
 import { SelectMenu } from '../../components/ui/SelectMenu'
+import { LoadState } from '../../components/ui/LoadState'
 
 type Period = '7D' | '14D' | '30D' | 'CUSTOM'
 
@@ -123,7 +124,7 @@ export function LogsPage() {
       }} key={filter}>{filter === 'ALL' ? '전체' : filter}</button>)}</div>
     </div>
     <div className="result-summary"><span><strong>{totals.days}</strong>일의 기록 · <strong>{totals.items}</strong>개 항목</span>{loading && <span>불러오는 중…</span>}</div>
-    {error && <div className="error">{error}</div>}
+    <LoadState error={error} onRetry={() => void loadPage()} />
     <div className="timeline">
       {dates.map((recordDate) => <section className="timeline-day" key={recordDate}>
         <Link className="timeline-date" to={`/logs/${recordDate}`}><strong>{formatKoreanDate(recordDate, { month: 'long', day: 'numeric' })}</strong><span>{formatKoreanDate(recordDate, { weekday: 'long' })}</span></Link>
