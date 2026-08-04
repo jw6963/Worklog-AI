@@ -59,32 +59,37 @@ function meaningfulKeyword(word: string) {
   return new Set(letters).size > 1 && !/(.)\1{4,}/.test(normalized)
 }
 
+function pick<T>(values: T[], seed: number) {
+  return values[Math.abs(seed) % values.length]
+}
+
 function completionEvaluation(rate: number, difference: number, done: number, todo: number) {
   if (!done && !todo) return { tone: 'neutral' as EvaluationTone, text: '완료율을 계산할 TODO 또는 DONE 기록이 없습니다.' }
-  const level = rate >= 95 ? '거의 모든 업무를 마무리한 상태입니다.'
-    : rate >= 85 ? '대부분의 업무가 완료되어 마무리 흐름이 매우 안정적입니다.'
-      : rate >= 70 ? '완료한 업무가 뚜렷하게 많아 전반적인 진행이 원활합니다.'
-        : rate >= 55 ? '절반 이상을 완료했지만 아직 이어서 관리할 업무가 남아 있습니다.'
-          : rate >= 40 ? '완료와 진행 중인 업무가 비슷해 마무리 속도를 조금 높일 여지가 있습니다.'
-            : rate >= 20 ? '완료보다 열린 업무가 많아 우선순위와 범위를 점검할 시점입니다.'
-              : rate > 0 ? '일부 업무만 완료되어 미완료 항목을 작게 나누거나 정리할 필요가 있습니다.'
-                : '완료 처리된 업무가 없어 현재 기간의 마무리 흐름을 확인하기 어렵습니다.'
-  const change = difference >= 20 ? '이전 기간보다 완료 흐름이 크게 좋아졌습니다.'
-    : difference >= 10 ? '이전 기간보다 완료 흐름이 뚜렷하게 좋아졌습니다.'
-      : difference >= 3 ? '이전 기간보다 완료 흐름이 소폭 좋아졌습니다.'
-        : difference > -3 ? '이전 기간과 비슷한 수준을 유지했습니다.'
-          : difference > -10 ? '이전 기간보다 완료 흐름이 소폭 낮아졌습니다.'
-            : difference > -20 ? '이전 기간보다 완료 흐름이 눈에 띄게 낮아졌습니다.'
-              : '이전 기간보다 완료 흐름이 크게 낮아져 남은 업무 점검이 필요합니다.'
+  const seed = done * 31 + todo * 17 + rate
+  const level = pick(rate >= 95 ? ['거의 모든 업무를 마무리해 열린 항목이 드뭅니다.', '착수한 업무 대부분이 결과로 연결된 기간입니다.', '완료 단계까지 도달한 업무 비중이 매우 높습니다.']
+    : rate >= 85 ? ['대부분의 업무가 완료되어 마무리 흐름이 매우 안정적입니다.', '새로 벌인 일보다 끝낸 일이 확실히 많은 기간입니다.', '미완료를 크게 남기지 않고 결과를 축적했습니다.']
+      : rate >= 70 ? ['완료한 업무가 뚜렷하게 많아 전반적인 진행이 원활합니다.', '진행 중인 일보다 마친 일이 많아 흐름이 안정적입니다.', '업무를 결과로 전환하는 비율이 양호합니다.']
+        : rate >= 55 ? ['절반 이상을 완료했지만 이어서 관리할 업무도 남아 있습니다.', '마무리 흐름은 우세하지만 다음 기간으로 이어질 일이 보입니다.', '완료가 앞서고 있으나 열린 업무를 정리하면 흐름이 더 선명해집니다.']
+          : rate >= 40 ? ['완료와 진행 중인 업무가 비슷해 마무리 속도를 높일 여지가 있습니다.', '착수와 완료가 균형을 이루지만 미완료가 누적되지 않는지 살펴볼 시점입니다.', '진행은 활발하지만 결과로 닫히는 비율은 중간 수준입니다.']
+            : rate >= 20 ? ['완료보다 열린 업무가 많아 우선순위와 범위를 점검할 시점입니다.', '새로 진행한 일에 비해 마무리된 결과가 적은 편입니다.', '동시에 진행하는 업무를 줄이면 완료 흐름을 높일 수 있습니다.']
+              : rate > 0 ? ['일부 업무만 완료되어 미완료 항목을 작게 나누거나 정리할 필요가 있습니다.', '업무는 움직였지만 완료 단계에 도달한 항목은 제한적입니다.', '결과보다 진행 기록이 많이 남아 다음 행동을 구체화할 필요가 있습니다.']
+                : ['완료 처리된 업무가 없어 현재 기간의 마무리 흐름을 확인하기 어렵습니다.', '열린 업무만 남아 있어 무엇을 끝냈는지 기록상 확인되지 않습니다.', '완료 결과가 아직 기록되지 않아 진행 상태 중심으로만 회고할 수 있습니다.'], seed)
+  const change = pick(difference >= 20 ? ['이전 기간보다 완료 흐름이 크게 반등했습니다.', '직전 기간과 비교하면 마무리 속도가 확연히 좋아졌습니다.']
+    : difference >= 10 ? ['이전 기간보다 완료 흐름이 뚜렷하게 좋아졌습니다.', '완료 비중이 두 자릿수 폭으로 상승했습니다.']
+      : difference >= 3 ? ['이전 기간보다 완료 흐름이 소폭 좋아졌습니다.', '작지만 긍정적인 완료율 상승이 보입니다.']
+        : difference > -3 ? ['이전 기간과 비슷한 수준을 유지했습니다.', '완료 흐름에 큰 변화 없이 안정적으로 이어졌습니다.']
+          : difference > -10 ? ['이전 기간보다 완료 흐름이 소폭 낮아졌습니다.', '완료율이 조금 내려갔지만 급격한 변화는 아닙니다.']
+            : difference > -20 ? ['이전 기간보다 완료 흐름이 눈에 띄게 낮아졌습니다.', '직전 기간보다 열린 업무가 결과로 이어지는 비율이 줄었습니다.']
+              : ['이전 기간보다 완료 흐름이 크게 낮아져 남은 업무 점검이 필요합니다.', '완료율 하락 폭이 커서 업무 범위나 장애물을 확인해야 합니다.'], seed + difference)
   return { tone: rate >= 70 ? 'positive' as EvaluationTone : rate >= 40 ? 'neutral' as EvaluationTone : 'attention' as EvaluationTone, text: `${level} ${change}` }
 }
 
-function consistencyEvaluation(rate: number) {
-  if (rate >= 90) return '거의 매일 기록해 업무 흐름이 매우 선명하게 남아 있습니다.'
-  if (rate >= 70) return '기간 전반에 꾸준히 기록해 흐름을 파악하기 좋습니다.'
-  if (rate >= 50) return '절반 이상의 날짜에 기록했지만 중간중간 비어 있는 날이 있습니다.'
-  if (rate >= 30) return '특정 날짜에 기록이 몰려 있어 일별 흐름은 일부만 확인할 수 있습니다.'
-  if (rate > 0) return '기록 간격이 길어 기간 전체의 진행 과정을 판단하기 어렵습니다.'
+function consistencyEvaluation(rate: number, activeDays: number) {
+  if (rate >= 90) return pick(['거의 매일 기록해 업무 흐름이 매우 선명하게 남아 있습니다.', '기록 공백이 거의 없어 기간의 변화를 촘촘하게 되짚을 수 있습니다.'], activeDays)
+  if (rate >= 70) return pick(['기간 전반에 꾸준히 기록해 흐름을 파악하기 좋습니다.', '대부분의 날짜에 흔적을 남겨 업무 맥락이 잘 이어집니다.'], activeDays)
+  if (rate >= 50) return pick(['절반 이상의 날짜에 기록했지만 중간중간 비어 있는 날이 있습니다.', '주요 흐름은 보이지만 일부 날짜의 진행 과정은 빠져 있습니다.'], activeDays)
+  if (rate >= 30) return pick(['특정 날짜에 기록이 몰려 있어 일별 흐름은 일부만 확인할 수 있습니다.', '간헐적으로 기록해 활동은 보이지만 연속성은 다소 약합니다.'], activeDays)
+  if (rate > 0) return pick(['기록 간격이 길어 기간 전체의 진행 과정을 판단하기 어렵습니다.', '소수 날짜에만 기록이 있어 실제 업무 흐름보다 축소되어 보일 수 있습니다.'], activeDays)
   return '이 기간에는 기록한 날짜가 없습니다.'
 }
 
@@ -188,7 +193,38 @@ export function ReviewsPage() {
   const overallTone: EvaluationTone = overallScore >= 5 ? 'positive' : overallScore >= 3 ? 'neutral' : 'attention'
   const strengths = [current.rate >= 70 && '완료 흐름', consistencyRate >= 70 && '꾸준한 기록', current.notes.length > 0 && '메모와 배움', !staleTodos.length && '미완료 정리'].filter(Boolean)
   const concerns = [current.rate < 40 && '낮은 완료 비율', consistencyRate < 30 && '긴 기록 공백', oldestTodoDays >= 7 && '장기 미완료 업무', unassignedRatio >= 30 && '프로젝트 미분류'].filter(Boolean)
-  const overallText = `${overallScore >= 5 ? '완료·기록·후속 관리가 전반적으로 안정적인 기간입니다.' : overallScore >= 3 ? '좋은 흐름과 보완할 지점이 함께 보이는 기간입니다.' : '다음 기간을 시작하기 전에 열린 업무와 기록 방식을 정리할 필요가 있습니다.'}${strengths.length ? ` 강점은 ${strengths.join(', ')}입니다.` : ''}${concerns.length ? ` 우선 확인할 부분은 ${concerns.join(', ')}입니다.` : ' 뚜렷한 위험 신호는 많지 않습니다.'}`
+  const summarySeed = items.length * 13 + current.done.length * 7 + activeDays
+  const overallText = `${pick(overallScore >= 5
+    ? ['완료·기록·후속 관리가 전반적으로 안정적인 기간입니다.', '결과와 과정 기록이 균형을 이루며 흐름이 안정적으로 이어졌습니다.', '업무를 진행하고 정리하는 리듬이 전반적으로 잘 유지됐습니다.']
+    : overallScore >= 3
+      ? ['좋은 흐름과 보완할 지점이 함께 보이는 기간입니다.', '성과 신호는 있으나 몇 가지 관리 지점도 함께 드러납니다.', '전반적인 흐름은 유지됐지만 다음 기간에 다듬을 부분이 남았습니다.']
+      : ['다음 기간을 시작하기 전에 열린 업무와 기록 방식을 정리할 필요가 있습니다.', '활동은 있었지만 결과와 기록의 연결을 다시 정비할 시점입니다.', '현재 흐름을 그대로 이어가기보다 업무 범위와 기록 습관을 한번 재설계하는 편이 좋습니다.'], summarySeed)}${strengths.length ? ` 강점은 ${strengths.join(', ')}입니다.` : ''}${concerns.length ? ` 우선 확인할 부분은 ${concerns.join(', ')}입니다.` : ' 뚜렷한 위험 신호는 많지 않습니다.'}`
+  const patternText = consistencyRate >= 70 && rateDifference <= -10
+    ? '기록은 꾸준하지만 완료율이 낮아졌습니다. 실행량 부족보다는 업무 난이도, 외부 의존성 또는 동시에 진행하는 일의 수가 영향을 줬을 가능성이 있습니다.'
+    : current.rate >= 75 && dominantProjectRatio >= 70
+      ? `높은 완료율과 프로젝트 집중이 함께 나타났습니다. '${dominantProject?.name}'에 집중한 것이 결과를 만드는 데 유리하게 작용한 흐름입니다.`
+      : itemDifference >= Math.max(3, Math.round(previousItems.length * .5)) && current.rate < 40
+        ? '기록량은 크게 늘었지만 완료 비율은 낮습니다. 새 업무 유입 속도가 마무리 속도보다 빠른 과부하 패턴일 수 있습니다.'
+        : current.notes.length >= Math.max(3, current.done.length)
+          ? '완료 결과만큼 메모와 배움이 많이 남았습니다. 실행뿐 아니라 판단 근거와 지식을 축적한 탐색형 기간에 가깝습니다.'
+          : oldestTodoDays >= 14 && current.rate >= 70
+            ? '전체 완료 흐름은 좋지만 오래 남은 소수 업무가 있습니다. 전반적 생산성보다 특정 항목의 구조적 장애물을 따로 살펴보는 편이 정확합니다.'
+            : current.rate >= 70 && consistencyRate < 30
+              ? '기록한 날은 적지만 완료율은 높습니다. 짧게 집중해 결과를 낸 것인지, 중간 과정이 기록에서 빠진 것인지 구분해 볼 필요가 있습니다.'
+              : topTopics.length >= 2
+                ? `${topTopics.slice(0, 2).map((topic) => `'${topic}'`).join('와 ')}가 반복되어 이 기간의 중심 맥락을 형성했습니다. 관련 완료와 미완료 항목을 함께 보면 다음 우선순위를 잡기 쉽습니다.`
+                : '한 가지 강한 패턴보다는 여러 신호가 섞여 있습니다. 개별 완료 항목과 오래 남은 TODO를 함께 보는 것이 가장 정확합니다.'
+  const nextAction = oldestTodoDays >= 14
+    ? `가장 오래된 ${oldestTodoDays}일째 TODO를 계속 진행, 보류, 삭제 중 하나로 명확히 결정해 보세요.`
+    : current.rate < 40 && current.todo.length >= 3
+      ? `남은 ${current.todo.length}개 중 다음 기간에 반드시 끝낼 1~3개만 먼저 고르고 나머지는 우선순위를 낮춰보세요.`
+      : consistencyRate < 30
+        ? '매일 길게 쓰기보다 업무 종료 전에 완료·미완료·배움 한 줄씩만 남기는 최소 기록 규칙을 시도해 보세요.'
+        : unassignedRatio >= 30
+          ? `프로젝트 미지정 기록 ${unassignedProject?.count ?? 0}개 중 반복해서 조회할 항목부터 프로젝트를 지정해 보세요.`
+          : !current.notes.length
+            ? '완료 결과 중 하나를 골라 무엇이 잘됐고 다음에 무엇을 반복할지 메모로 남겨보세요.'
+            : '현재 흐름을 유지하면서 다음 회고에서 완료율과 장기 TODO가 같은 방향으로 개선되는지 확인해 보세요.'
   const evaluationPoints = items.length ? [
     {
       label: '종합 평가', tone: overallTone,
@@ -204,7 +240,7 @@ export function ReviewsPage() {
     },
     {
       label: '기록 습관', tone: consistencyRate >= 70 ? 'positive' : consistencyRate >= 35 ? 'neutral' : 'attention',
-      text: `확인 가능한 ${availableDays}일 중 ${activeDays}일에 기록해 기록 지속률은 ${consistencyRate}%입니다. ${consistencyEvaluation(consistencyRate)}`,
+      text: `확인 가능한 ${availableDays}일 중 ${activeDays}일에 기록해 기록 지속률은 ${consistencyRate}%입니다. ${consistencyEvaluation(consistencyRate, activeDays)}`,
     },
     {
       label: '업무 집중', tone: dominantProjectRatio >= 70 ? 'attention' : 'neutral',
@@ -219,6 +255,14 @@ export function ReviewsPage() {
     {
       label: '후속 관리', tone: oldestTodoDays >= 7 ? 'attention' : staleTodos.length ? 'neutral' : 'positive',
       text: followUpText,
+    },
+    {
+      label: '패턴 해석', tone: 'neutral',
+      text: patternText,
+    },
+    {
+      label: '다음 제안', tone: concerns.length ? 'attention' : 'positive',
+      text: nextAction,
     },
     ...(unassignedRatio >= 30 ? [{
       label: '분류 상태', tone: 'attention',
