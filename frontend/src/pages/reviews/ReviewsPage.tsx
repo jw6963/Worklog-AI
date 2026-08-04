@@ -42,6 +42,10 @@ function daysBetween(from: string, to: string) {
   return Math.max(0, Math.floor((new Date(`${to}T12:00:00`).getTime() - new Date(`${from}T12:00:00`).getTime()) / 86400000))
 }
 
+function itemTitle(item: WorkItem) {
+  return item.content.replace(/[#*_`>\-[\]]/g, '').split('\n').find((line) => line.trim())?.trim() ?? item.content
+}
+
 const stopWords = new Set(['그리고', '에서', '으로', '하는', '했다', '합니다', '대한', '위해', '현재', '경우', '사용', '작업', '기록'])
 
 export function ReviewsPage() {
@@ -88,6 +92,19 @@ export function ReviewsPage() {
     })
     return [...counts.values()].sort((a, b) => b.count - a.count).slice(0, 6)
   }, [items])
+  const activeDays = new Set(items.map((item) => item.workDate)).size
+  const topTopics = keywords.slice(0, 3).map(([word]) => word)
+  const completedTitles = current.done.slice(0, 3).map(itemTitle)
+  const dominantProject = projectStats[0]
+  const activitySummary = items.length
+    ? `${activeDays}일 동안 ${items.length}개를 기록했습니다.${dominantProject ? ` '${dominantProject.name}' 관련 기록이 ${dominantProject.count}개로 가장 많았습니다.` : ''}${topTopics.length ? ` 자주 등장한 주제는 ${topTopics.map((topic) => `'${topic}'`).join(', ')}입니다.` : ''}`
+    : '아직 분석할 기록이 없습니다.'
+  const resultSummary = completedTitles.length
+    ? `완료 기록에서는 ${completedTitles.map((title) => `'${title}'`).join(', ')}${current.done.length > completedTitles.length ? ` 외 ${current.done.length - completedTitles.length}개` : ''}를 마쳤습니다.`
+    : '이 기간에는 완료로 기록된 결과가 없어 구체적인 성과를 요약하기 어렵습니다.'
+  const evaluationSummary = !items.length
+    ? '기록이 쌓이면 완료 흐름과 지연 업무를 평가합니다.'
+    : `${current.rate >= 75 ? '완료 비중이 높아 마무리 흐름이 좋습니다.' : current.rate >= 40 ? '진행과 완료가 함께 쌓이고 있습니다.' : '완료보다 열린 업무 비중이 높아 우선순위 정리가 필요합니다.'} ${trend(current.rate, before.rate, '%p')}.${staleTodos.length ? ` 가장 오래 남은 할 일은 ${staleTodos[0].days}일째입니다.` : ' 장기간 남은 할 일은 없습니다.'}`
 
   function move(direction: number) {
     if (period === 'WEEK') setAnchor(addDays(anchor, direction * 7))
@@ -113,7 +130,7 @@ export function ReviewsPage() {
     </section>
     <div className="review-grid">
       <section className="review-panel"><div className="panel-heading"><div><span>ACHIEVEMENTS</span><h2>완료한 일</h2></div></div>
-        <ul className="achievement-list">{current.done.slice(0, 12).map((item) => <li key={item.id}><Link to={`/logs/${item.workDate}#item-${item.id}`}><span>{item.content.replace(/[#*_`>-]/g, '').split('\n')[0]}</span><small>{formatKoreanDate(item.workDate, { month: 'short', day: 'numeric' })}</small></Link></li>)}</ul>
+        <ul className="achievement-list">{current.done.slice(0, 12).map((item) => <li key={item.id}><Link to={`/logs/${item.workDate}#item-${item.id}`}><span>{itemTitle(item)}</span><small>{formatKoreanDate(item.workDate, { month: 'short', day: 'numeric' })}</small></Link></li>)}</ul>
         {!current.done.length && <p className="panel-empty">이 기간에 완료 기록이 없습니다.</p>}
       </section>
       <section className="review-panel"><div className="panel-heading"><div><span>PROJECTS</span><h2>프로젝트 분포</h2></div></div>
@@ -121,13 +138,17 @@ export function ReviewsPage() {
         {!projectStats.length && <p className="panel-empty">분석할 프로젝트 기록이 없습니다.</p>}
       </section>
       <section className="review-panel"><div className="panel-heading"><div><span>OPEN ITEMS</span><h2>오래 남은 할 일</h2></div></div>
-        <ul className="stale-review-list">{staleTodos.map(({ item, days }) => <li key={item.id}><Link to={`/logs/${item.workDate}#item-${item.id}`}><span>{item.content.replace(/[#*_`>-]/g, '').split('\n')[0]}</span><strong>{days}일째</strong></Link></li>)}</ul>
+        <ul className="stale-review-list">{staleTodos.map(({ item, days }) => <li key={item.id}><Link to={`/logs/${item.workDate}#item-${item.id}`}><span>{itemTitle(item)}</span><strong>{days}일째</strong></Link></li>)}</ul>
         {!staleTodos.length && <p className="panel-empty">오래 남아 있는 할 일이 없습니다.</p>}
       </section>
       <section className="review-panel"><div className="panel-heading"><div><span>KEYWORDS</span><h2>자주 기록한 주제</h2></div></div>
-        <div className="keyword-cloud">{keywords.map(([word, count]) => <span key={word}>{word}<b>{count}</b></span>)}</div>
+        <div className="keyword-cloud">{keywords.map(([word, count]) => <span key={word}><em>{word}</em><b>{count}</b></span>)}</div>
         {!keywords.length && <p className="panel-empty">분석할 기록이 없습니다.</p>}
-        <div className="rule-summary"><strong>기간 요약</strong><p>{items.length ? `${new Set(items.map((item) => item.workDate)).size}일 동안 ${items.length}개의 기록을 남겼고, ${current.done.length}개의 일을 완료했습니다.${current.todo.length ? ` 아직 ${current.todo.length}개의 할 일이 남아 있습니다.` : ' 남은 할 일이 없습니다.'}` : '아직 기록이 없습니다.'}</p></div>
+        <div className="rule-summary"><strong>규칙 기반 기간 분석</strong><dl>
+          <div><dt>활동</dt><dd>{activitySummary}</dd></div>
+          <div><dt>결과</dt><dd>{resultSummary}</dd></div>
+          <div><dt>평가</dt><dd>{evaluationSummary}</dd></div>
+        </dl><small>프로젝트, 단어 빈도, 완료 상태와 TODO 체류 기간을 기준으로 계산했습니다.</small></div>
       </section>
     </div>
   </main>
