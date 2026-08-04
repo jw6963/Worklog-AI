@@ -182,18 +182,36 @@ public class WorkItemController {
     }
 
     @PatchMapping("/{id}/content")
+    @org.springframework.transaction.annotation.Transactional
     public WorkItem changeContent(@PathVariable Long id, @Valid @RequestBody ContentRequest request, Authentication auth) {
         WorkItem item = ownedItem(id, auth);
-        item.setContent(request.content().trim());
-        return repository.save(item);
+        String content = request.content().trim();
+        if (item.getFlowId() == null) {
+            item.setContent(content);
+            return repository.save(item);
+        }
+        List<WorkItem> flow = repository.findByOwnerIdAndFlowIdOrderByWorkDateAscCreatedAtAsc(
+                currentUser.get(auth).getId(), item.getFlowId());
+        flow.forEach(linked -> linked.setContent(content));
+        repository.saveAll(flow);
+        return item;
     }
 
     @PatchMapping("/{id}/project")
+    @org.springframework.transaction.annotation.Transactional
     public WorkItem changeProject(@PathVariable Long id, @RequestBody ProjectRequest request, Authentication auth) {
         AppUser owner = currentUser.get(auth);
         WorkItem item = repository.findByIdAndOwnerId(id, owner.getId()).orElseThrow();
-        item.setProject(request.projectId() == null ? null : projectRepository.findByIdAndOwnerId(request.projectId(), owner.getId()).orElseThrow());
-        return repository.save(item);
+        Project project = request.projectId() == null ? null
+                : projectRepository.findByIdAndOwnerId(request.projectId(), owner.getId()).orElseThrow();
+        if (item.getFlowId() == null) {
+            item.setProject(project);
+            return repository.save(item);
+        }
+        List<WorkItem> flow = repository.findByOwnerIdAndFlowIdOrderByWorkDateAscCreatedAtAsc(owner.getId(), item.getFlowId());
+        flow.forEach(linked -> linked.setProject(project));
+        repository.saveAll(flow);
+        return item;
     }
 
     @DeleteMapping("/{id}")

@@ -151,6 +151,11 @@ class BackendApplicationTests {
 		workItemController.changeType(source.getId(), new WorkItemController.TypeRequest(WorkItem.ItemType.TODO), admin);
 		openTodos = workItemController.search(yesterday, today, null, WorkItem.ItemType.TODO, null, "", 10, admin);
 		assertThat(openTodos.items()).singleElement().satisfies(item -> assertThat(item.getId()).isEqualTo(carried.getId()));
+		workItemController.changeContent(carried.getId(), new WorkItemController.ContentRequest("synced task"), admin);
+		assertThat(workItemRepository.findById(source.getId()).orElseThrow().getContent()).isEqualTo("synced task");
+		workItemController.changeProject(carried.getId(), new WorkItemController.ProjectRequest(null), admin);
+		assertThat(workItemRepository.findById(source.getId()).orElseThrow().getProject()).isNull();
+		workItemController.changeProject(carried.getId(), new WorkItemController.ProjectRequest(project.getId()), admin);
 
 		WorkItemController.BackupResponse backup = workItemController.backup(admin);
 		assertThat(backup.schemaVersion()).isEqualTo(3);

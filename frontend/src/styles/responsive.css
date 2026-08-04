@@ -28,6 +28,8 @@
   .date-nav input { min-width: 0; flex: 1; }
   .work-section { padding-top: 34px; }
   .entry-actions { opacity: 1; }
+  .carried-entry { grid-template-columns: 8px minmax(0, 1fr); }
+  .carried-actions { grid-column: 2; justify-content: flex-end; }
   .import-summary { grid-template-columns: 1fr; }
   .import-entry-row { grid-template-columns: 46px minmax(0, 1fr); }
   .import-entry-row .select-menu { grid-column: 1 / -1; }

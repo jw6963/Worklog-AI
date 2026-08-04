@@ -91,6 +91,23 @@ export function EditableWorkItem({ item, onUpdated, onChangeType, onRemove, proj
     return () => document.removeEventListener('pointerdown', saveOnOutsideClick)
   }, [editing])
 
+  if (item.carriedToDate) {
+    const summary = item.content.replace(/[#*_`>\-[\]]/g, '').split('\n').find((line) => line.trim()) ?? item.content
+    return <div id={`item-${item.id}`} className="entry carried-entry" tabIndex={-1} style={projectStyle}>
+      <i className="carried-project-dot" />
+      <div className="carried-summary">
+        <div><strong>{summary}</strong>{item.project && <span>{item.project.name}</span>}</div>
+        <small>{item.carriedToDate}로 이월됨{item.flowCompletedDate ? ` · ${item.flowCompletedDate} 완료` : ''}</small>
+      </div>
+      <div className="carried-actions">
+        {item.flowCurrentDate && <Link to={`/logs/${item.flowCurrentDate}`}>현재 항목 →</Link>}
+        {!item.flowCompletedDate
+          ? <button className="complete" onClick={() => onChangeType(item, 'DONE')}>완료</button>
+          : <button onClick={() => onChangeType(item, 'TODO')}>할 일로</button>}
+      </div>
+    </div>
+  }
+
   if (editing) return <div id={`item-${item.id}`} className="entry editing-entry" ref={editorContainer} style={projectStyle} tabIndex={-1}>
     {projectSelector}
     <RichMarkdownEditor value={draft} placeholder="기록을 수정하세요…" onChange={setDraft}
@@ -107,10 +124,6 @@ export function EditableWorkItem({ item, onUpdated, onChangeType, onRemove, proj
   }} style={projectStyle}>
     {projectSelector}
     <div className="markdown"><ReactMarkdown>{item.content}</ReactMarkdown></div>
-    {item.carriedToDate && <div className={`carry-status ${item.flowCompletedDate ? 'completed' : ''}`}>
-      <span>{item.carriedToDate}로 이월됨{item.flowCompletedDate ? ` · ${item.flowCompletedDate} 완료` : ''}</span>
-      {item.flowCurrentDate && <Link to={`/logs/${item.flowCurrentDate}`}>현재 항목 보기 →</Link>}
-    </div>}
     <div className="entry-actions">
       {!item.carriedToDate && <button onClick={() => setEditing(true)}>수정</button>}
       {item.type === 'TODO' && !item.flowCompletedDate && <button className="complete" onClick={() => onChangeType(item, 'DONE')}>완료</button>}
