@@ -7,6 +7,7 @@ import type { WorkItem } from '../../types'
 
 type ReviewPeriod = 'WEEK' | 'MONTH'
 type Range = { from: string; to: string }
+type EvaluationTone = 'positive' | 'neutral' | 'attention'
 
 function mondayOf(date: string) {
   const parsed = new Date(`${date}T12:00:00`)
@@ -56,6 +57,44 @@ function meaningfulKeyword(word: string) {
   const normalized = word.toLowerCase()
   const letters = normalized.replace(/[^가-힣a-z]/g, '')
   return new Set(letters).size > 1 && !/(.)\1{4,}/.test(normalized)
+}
+
+function completionEvaluation(rate: number, difference: number, done: number, todo: number) {
+  if (!done && !todo) return { tone: 'neutral' as EvaluationTone, text: '완료율을 계산할 TODO 또는 DONE 기록이 없습니다.' }
+  const level = rate >= 95 ? '거의 모든 업무를 마무리한 상태입니다.'
+    : rate >= 85 ? '대부분의 업무가 완료되어 마무리 흐름이 매우 안정적입니다.'
+      : rate >= 70 ? '완료한 업무가 뚜렷하게 많아 전반적인 진행이 원활합니다.'
+        : rate >= 55 ? '절반 이상을 완료했지만 아직 이어서 관리할 업무가 남아 있습니다.'
+          : rate >= 40 ? '완료와 진행 중인 업무가 비슷해 마무리 속도를 조금 높일 여지가 있습니다.'
+            : rate >= 20 ? '완료보다 열린 업무가 많아 우선순위와 범위를 점검할 시점입니다.'
+              : rate > 0 ? '일부 업무만 완료되어 미완료 항목을 작게 나누거나 정리할 필요가 있습니다.'
+                : '완료 처리된 업무가 없어 현재 기간의 마무리 흐름을 확인하기 어렵습니다.'
+  const change = difference >= 20 ? '이전 기간보다 완료 흐름이 크게 좋아졌습니다.'
+    : difference >= 10 ? '이전 기간보다 완료 흐름이 뚜렷하게 좋아졌습니다.'
+      : difference >= 3 ? '이전 기간보다 완료 흐름이 소폭 좋아졌습니다.'
+        : difference > -3 ? '이전 기간과 비슷한 수준을 유지했습니다.'
+          : difference > -10 ? '이전 기간보다 완료 흐름이 소폭 낮아졌습니다.'
+            : difference > -20 ? '이전 기간보다 완료 흐름이 눈에 띄게 낮아졌습니다.'
+              : '이전 기간보다 완료 흐름이 크게 낮아져 남은 업무 점검이 필요합니다.'
+  return { tone: rate >= 70 ? 'positive' as EvaluationTone : rate >= 40 ? 'neutral' as EvaluationTone : 'attention' as EvaluationTone, text: `${level} ${change}` }
+}
+
+function consistencyEvaluation(rate: number) {
+  if (rate >= 90) return '거의 매일 기록해 업무 흐름이 매우 선명하게 남아 있습니다.'
+  if (rate >= 70) return '기간 전반에 꾸준히 기록해 흐름을 파악하기 좋습니다.'
+  if (rate >= 50) return '절반 이상의 날짜에 기록했지만 중간중간 비어 있는 날이 있습니다.'
+  if (rate >= 30) return '특정 날짜에 기록이 몰려 있어 일별 흐름은 일부만 확인할 수 있습니다.'
+  if (rate > 0) return '기록 간격이 길어 기간 전체의 진행 과정을 판단하기 어렵습니다.'
+  return '이 기간에는 기록한 날짜가 없습니다.'
+}
+
+function focusEvaluation(projectName: string | undefined, ratio: number) {
+  if (!projectName) return '프로젝트가 지정된 기록이 없어 프로젝트별 집중도를 판단할 수 없습니다.'
+  if (ratio >= 85) return `'${projectName}' 프로젝트가 ${ratio}%를 차지해 업무가 사실상 한 프로젝트에 집중됐습니다.`
+  if (ratio >= 70) return `'${projectName}' 프로젝트가 ${ratio}%를 차지해 집중도가 높은 편입니다.`
+  if (ratio >= 50) return `'${projectName}' 프로젝트가 ${ratio}%로 절반 이상을 차지하지만 다른 업무도 함께 진행했습니다.`
+  if (ratio >= 30) return `'${projectName}' 프로젝트가 ${ratio}%로 가장 많지만 업무는 비교적 여러 영역에 분산됐습니다.`
+  return `가장 많은 '${projectName}' 프로젝트도 ${ratio}%여서 여러 프로젝트를 고르게 다뤘습니다.`
 }
 
 const stopWords = new Set(['그리고', '에서', '으로', '하는', '했다', '합니다', '대한', '위해', '현재', '경우', '사용', '작업', '기록'])
@@ -128,26 +167,48 @@ export function ReviewsPage() {
   const rateDifference = current.rate - before.rate
   const noteDifference = current.notes.length - before.notes.length
   const itemComparison = itemDifference === 0 ? '이전 기간과 같은 수입니다' : `이전 기간보다 ${Math.abs(itemDifference)}개 ${itemDifference > 0 ? '많습니다' : '적습니다'}`
-  const rateComparison = rateDifference === 0 ? '이전 기간과 같습니다' : `이전 기간보다 ${Math.abs(rateDifference)}%p ${rateDifference > 0 ? '높습니다' : '낮습니다'}`
   const noteComparison = noteDifference === 0 ? '이전 기간과 같습니다' : `이전 기간보다 ${Math.abs(noteDifference)}개 ${noteDifference > 0 ? '많습니다' : '적습니다'}`
+  const completionInsight = completionEvaluation(current.rate, rateDifference, current.done.length, current.todo.length)
+  const oldestTodoDays = staleTodos[0]?.days ?? 0
+  const followUpText = !staleTodos.length ? '하루 이상 장기 미완료 상태인 할 일이 없어 후속 관리가 잘 정리되어 있습니다.'
+    : oldestTodoDays >= 30 ? `${staleTodos.length}개의 할 일이 남아 있고 가장 오래된 항목은 ${oldestTodoDays}일째입니다. 장기 보류인지 실제 진행 업무인지 재분류가 필요합니다.`
+      : oldestTodoDays >= 14 ? `${staleTodos.length}개의 할 일이 남아 있고 가장 오래된 항목은 ${oldestTodoDays}일째입니다. 다음 기간의 우선 업무로 올리거나 범위를 줄여보세요.`
+        : oldestTodoDays >= 7 ? `${staleTodos.length}개의 할 일이 남아 있고 가장 오래된 항목은 ${oldestTodoDays}일째입니다. 일주일 이상 머문 업무부터 장애물을 확인할 필요가 있습니다.`
+          : oldestTodoDays >= 3 ? `${staleTodos.length}개의 할 일이 남아 있고 가장 오래된 항목은 ${oldestTodoDays}일째입니다. 아직 심각한 지연은 아니지만 다음 회고에서 다시 확인하세요.`
+            : `${staleTodos.length}개의 할 일이 하루 이상 남아 있지만 모두 최근 항목이라 자연스러운 진행 범위입니다.`
+  const overallSignals = [
+    current.rate >= 70,
+    rateDifference >= -3,
+    consistencyRate >= 50,
+    oldestTodoDays < 7,
+    current.notes.length > 0,
+    unassignedRatio < 30,
+  ]
+  const overallScore = overallSignals.filter(Boolean).length
+  const overallTone: EvaluationTone = overallScore >= 5 ? 'positive' : overallScore >= 3 ? 'neutral' : 'attention'
+  const strengths = [current.rate >= 70 && '완료 흐름', consistencyRate >= 70 && '꾸준한 기록', current.notes.length > 0 && '메모와 배움', !staleTodos.length && '미완료 정리'].filter(Boolean)
+  const concerns = [current.rate < 40 && '낮은 완료 비율', consistencyRate < 30 && '긴 기록 공백', oldestTodoDays >= 7 && '장기 미완료 업무', unassignedRatio >= 30 && '프로젝트 미분류'].filter(Boolean)
+  const overallText = `${overallScore >= 5 ? '완료·기록·후속 관리가 전반적으로 안정적인 기간입니다.' : overallScore >= 3 ? '좋은 흐름과 보완할 지점이 함께 보이는 기간입니다.' : '다음 기간을 시작하기 전에 열린 업무와 기록 방식을 정리할 필요가 있습니다.'}${strengths.length ? ` 강점은 ${strengths.join(', ')}입니다.` : ''}${concerns.length ? ` 우선 확인할 부분은 ${concerns.join(', ')}입니다.` : ' 뚜렷한 위험 신호는 많지 않습니다.'}`
   const evaluationPoints = items.length ? [
+    {
+      label: '종합 평가', tone: overallTone,
+      text: overallText,
+    },
     {
       label: '업무량', tone: 'neutral',
       text: `${items.length}개를 기록했으며 ${itemComparison}. 기록한 날은 이전 기간 ${previousActiveDays}일에서 ${activeDays}일로 ${activeDays === previousActiveDays ? '유지됐습니다' : activeDays > previousActiveDays ? '늘었습니다' : '줄었습니다'}.`,
     },
     {
-      label: '완료 흐름', tone: current.rate >= 75 ? 'positive' : current.rate >= 40 ? 'neutral' : 'attention',
-      text: `완료 비율은 ${current.rate}%로 ${rateComparison}. ${current.rate >= 75 ? '열린 업무보다 마무리한 업무의 비중이 높습니다.' : current.rate >= 40 ? '진행 중인 일과 완료한 일이 함께 쌓이고 있습니다.' : '열린 업무 비중이 높아 우선순위를 다시 확인할 필요가 있습니다.'}`,
+      label: '완료 흐름', tone: completionInsight.tone,
+      text: `완료 비율은 ${current.rate}%입니다. ${completionInsight.text}`,
     },
     {
       label: '기록 습관', tone: consistencyRate >= 70 ? 'positive' : consistencyRate >= 35 ? 'neutral' : 'attention',
-      text: `확인 가능한 ${availableDays}일 중 ${activeDays}일에 기록해 기록 지속률은 ${consistencyRate}%입니다. ${consistencyRate >= 70 ? '기간 전반에 비교적 꾸준히 기록했습니다.' : consistencyRate >= 35 ? '일부 날짜에 집중해서 기록했습니다.' : '기록하지 않은 날이 많아 흐름을 파악하기 어렵습니다.'}`,
+      text: `확인 가능한 ${availableDays}일 중 ${activeDays}일에 기록해 기록 지속률은 ${consistencyRate}%입니다. ${consistencyEvaluation(consistencyRate)}`,
     },
     {
       label: '업무 집중', tone: dominantProjectRatio >= 70 ? 'attention' : 'neutral',
-      text: dominantProject
-        ? `'${dominantProject.name}' 프로젝트가 전체 기록의 ${dominantProjectRatio}%를 차지합니다. ${dominantProjectRatio >= 70 ? '한 프로젝트에 업무가 크게 집중되어 있습니다.' : '여러 업무 영역에 기록이 분산되어 있습니다.'}`
-        : '프로젝트가 지정된 기록이 없어 프로젝트별 집중도를 판단할 수 없습니다.',
+      text: focusEvaluation(dominantProject?.name, dominantProjectRatio),
     },
     {
       label: '회고 습관', tone: current.notes.length ? 'positive' : 'attention',
@@ -156,10 +217,8 @@ export function ReviewsPage() {
         : '메모나 배움 기록이 없어 결과 외의 과정과 판단 근거는 회고하기 어렵습니다.',
     },
     {
-      label: '후속 관리', tone: staleTodos.length ? 'attention' : 'positive',
-      text: staleTodos.length
-        ? `${staleTodos.length}개의 할 일이 하루 이상 남아 있고, 가장 오래된 항목은 ${staleTodos[0].days}일째입니다.`
-        : '하루 이상 장기 미완료 상태인 할 일이 없습니다.',
+      label: '후속 관리', tone: oldestTodoDays >= 7 ? 'attention' : staleTodos.length ? 'neutral' : 'positive',
+      text: followUpText,
     },
     ...(unassignedRatio >= 30 ? [{
       label: '분류 상태', tone: 'attention',
@@ -210,7 +269,7 @@ export function ReviewsPage() {
         <div className="rule-summary"><dl>
           <div><dt>활동</dt><dd>{activitySummary}</dd></div>
           <div><dt>결과</dt><dd>{resultSummary}</dd></div>
-          <div><dt>평가</dt><dd>{evaluationPoints.length ? <ul className="insight-evaluations">{evaluationPoints.map((point) => <li className={point.tone} key={point.label}><strong>{point.label}</strong><span>{point.text}</span></li>)}</ul> : '기록이 쌓이면 여러 기준으로 업무 흐름을 평가합니다.'}</dd></div>
+          <div><dt>평가</dt><dd>{evaluationPoints.length ? <ul className="insight-evaluations">{evaluationPoints.map((point) => <li className={`${point.tone} ${point.label === '종합 평가' ? 'overall' : ''}`} key={point.label}><strong>{point.label}</strong><span>{point.text}</span></li>)}</ul> : '기록이 쌓이면 여러 기준으로 업무 흐름을 평가합니다.'}</dd></div>
         </dl><small>프로젝트, 단어 빈도, 완료 상태와 TODO 체류 기간을 기준으로 계산했습니다.</small></div>
       </section>
     </div>
