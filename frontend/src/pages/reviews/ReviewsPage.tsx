@@ -95,9 +95,13 @@ export function ReviewsPage() {
   const activeDays = new Set(items.map((item) => item.workDate)).size
   const topTopics = keywords.slice(0, 3).map(([word]) => word)
   const completedTitles = current.done.slice(0, 3).map(itemTitle)
-  const dominantProject = projectStats[0]
+  const dominantProject = projectStats.find((project) => project.id != null)
+  const unassignedProject = projectStats.find((project) => project.id == null)
+  const projectSummary = dominantProject
+    ? ` '${dominantProject.name}' 프로젝트 기록이 ${dominantProject.count}개로 가장 많았습니다.${unassignedProject ? ` 프로젝트 미지정 기록은 ${unassignedProject.count}개입니다.` : ''}`
+    : unassignedProject ? ` 프로젝트가 지정되지 않은 기록이 ${unassignedProject.count}개입니다.` : ''
   const activitySummary = items.length
-    ? `${activeDays}일 동안 ${items.length}개를 기록했습니다.${dominantProject ? ` '${dominantProject.name}' 관련 기록이 ${dominantProject.count}개로 가장 많았습니다.` : ''}${topTopics.length ? ` 자주 등장한 주제는 ${topTopics.map((topic) => `'${topic}'`).join(', ')}입니다.` : ''}`
+    ? `${activeDays}일 동안 ${items.length}개를 기록했습니다.${projectSummary}${topTopics.length ? ` 자주 등장한 주제는 ${topTopics.map((topic) => `'${topic}'`).join(', ')}입니다.` : ''}`
     : '아직 분석할 기록이 없습니다.'
   const resultSummary = completedTitles.length
     ? `완료 기록에서는 ${completedTitles.map((title) => `'${title}'`).join(', ')}${current.done.length > completedTitles.length ? ` 외 ${current.done.length - completedTitles.length}개` : ''}를 마쳤습니다.`
