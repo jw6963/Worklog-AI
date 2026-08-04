@@ -40,6 +40,7 @@ export function GuidePage() {
           <span>01</span><h2>일지 작성</h2>
           <p>하루에는 하나의 일지가 있고, 그 안에 할 일·완료한 일·메모 항목을 여러 개 작성합니다. 각 항목에는 서로 다른 프로젝트를 지정할 수 있습니다.</p>
           <ul><li><code># </code>로 제목, <code>- </code>로 목록을 시작합니다.</li><li>Tab과 Shift+Tab으로 목록 깊이를 조절합니다.</li><li>Ctrl+Enter로 새 항목을 저장합니다.</li><li>기존 항목을 클릭하면 편집하며, 바깥을 클릭하면 변경 내용이 저장됩니다.</li></ul>
+          <div className="guide-callout"><strong>전날 할 일을 가져오면 하나의 업무 흐름으로 연결됩니다.</strong><p>전날 항목은 이월 이력으로 남고 열린 TODO에서는 제외됩니다. 어느 날짜에서 완료해도 현재 항목이 완료되며 과거 이력에도 실제 완료 날짜가 표시됩니다.</p></div>
           <Link to={`/logs/${localDate()}`}>오늘 일지 열기 →</Link>
         </section>
 

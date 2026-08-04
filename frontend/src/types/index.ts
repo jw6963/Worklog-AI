@@ -7,6 +7,10 @@ export type WorkItem = {
   content: string
   updatedAt?: string
   project?: Project | null
+  flowId?: string | null
+  carriedToDate?: string | null
+  flowCurrentDate?: string | null
+  flowCompletedDate?: string | null
 }
 
 export type Project = {

@@ -36,7 +36,7 @@ export function ReviewsPage() {
   }, [range.from, range.to])
 
   const done = items.filter((item) => item.type === 'DONE')
-  const todo = items.filter((item) => item.type === 'TODO')
+  const todo = items.filter((item) => item.type === 'TODO' && !item.carriedToDate)
   const notes = items.filter((item) => item.type === 'NOTE')
   const rate = done.length + todo.length ? Math.round(done.length / (done.length + todo.length) * 100) : 0
   const keywords = useMemo(() => {

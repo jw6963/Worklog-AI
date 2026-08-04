@@ -130,12 +130,30 @@ class BackendApplicationTests {
 				new WorkItemController.ContentRequest("edited task"), admin);
 		assertThat(edited.getContent()).isEqualTo("edited task");
 
-		assertThat(workItemController.carryOver(new WorkItemController.CarryOverRequest(yesterday, today), admin))
-				.singleElement().satisfies(item -> assertThat(item.getProject().getName()).isEqualTo("Worklog"));
+		WorkItem carried = workItemController.carryOver(new WorkItemController.CarryOverRequest(yesterday, today), admin)
+				.getFirst();
+		assertThat(carried.getProject().getName()).isEqualTo("Worklog");
+		assertThat(carried.getFlowId()).isNotBlank();
+		WorkItem carriedSource = workItemRepository.findById(source.getId()).orElseThrow();
+		assertThat(carriedSource.getCarriedToDate()).isEqualTo(today);
+		assertThat(carriedSource.getFlowCurrentDate()).isEqualTo(today);
 		assertThat(workItemController.carryOver(new WorkItemController.CarryOverRequest(yesterday, today), admin)).isEmpty();
 
+		WorkItem completedFromPast = workItemController.changeType(source.getId(),
+				new WorkItemController.TypeRequest(WorkItem.ItemType.DONE), admin);
+		assertThat(completedFromPast.getId()).isEqualTo(carried.getId());
+		assertThat(completedFromPast.getType()).isEqualTo(WorkItem.ItemType.DONE);
+		assertThat(workItemRepository.findById(source.getId()).orElseThrow().getFlowCompletedDate()).isEqualTo(today);
+		WorkItemController.SearchResponse openTodos = workItemController.search(
+				yesterday, today, null, WorkItem.ItemType.TODO, null, "", 10, admin);
+		assertThat(openTodos.totalItems()).isZero();
+
+		workItemController.changeType(source.getId(), new WorkItemController.TypeRequest(WorkItem.ItemType.TODO), admin);
+		openTodos = workItemController.search(yesterday, today, null, WorkItem.ItemType.TODO, null, "", 10, admin);
+		assertThat(openTodos.items()).singleElement().satisfies(item -> assertThat(item.getId()).isEqualTo(carried.getId()));
+
 		WorkItemController.BackupResponse backup = workItemController.backup(admin);
-		assertThat(backup.schemaVersion()).isEqualTo(2);
+		assertThat(backup.schemaVersion()).isEqualTo(3);
 		assertThat(backup.projects()).hasSize(1);
 		assertThat(backup.items()).hasSize(2);
 
@@ -144,6 +162,7 @@ class BackendApplicationTests {
 		assertThat(projectRepository.findAll()).hasSize(1);
 		assertThat(workItemRepository.findAll()).hasSize(2).allSatisfy(item ->
 				assertThat(item.getProject().getName()).isEqualTo("Worklog"));
+		assertThat(workItemRepository.findAll()).allSatisfy(item -> assertThat(item.getFlowId()).isNotBlank());
 
 		Project restoredProject = projectRepository.findAll().getFirst();
 		assertThatThrownBy(() -> projectController.delete(restoredProject.getId(), false, admin))

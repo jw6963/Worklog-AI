@@ -60,7 +60,7 @@ export function DailyLogPage() {
   useEffect(() => { fetchProjects().then((result) => setProjects(result.filter((project) => !project.archived))).catch(() => setProjects([])) }, [])
   useEffect(() => {
     fetchItems(addDays(date, -1)).then((previous) =>
-      setPreviousTodoCount(previous.filter((item) => item.type === 'TODO').length)).catch(() => setPreviousTodoCount(0))
+      setPreviousTodoCount(previous.filter((item) => item.type === 'TODO' && !item.carriedToDate).length)).catch(() => setPreviousTodoCount(0))
   }, [date])
   if (!routeDate || !validDate(routeDate)) return <Navigate to={`/logs/${date}`} replace />
 
@@ -159,7 +159,7 @@ export function DailyLogPage() {
     />
     {error && <div className="error">{error}</div>}
     <section className="summary" aria-label="오늘 기록 요약">
-      <button type="button" onClick={() => moveToComposer('TODO')}><strong>{grouped.TODO?.length ?? 0}</strong> 할 일 <i>↓</i></button>
+      <button type="button" onClick={() => moveToComposer('TODO')}><strong>{grouped.TODO?.filter((item) => !item.carriedToDate).length ?? 0}</strong> 할 일 <i>↓</i></button>
       <button type="button" onClick={() => moveToComposer('DONE')}><strong>{grouped.DONE?.length ?? 0}</strong> 완료 <i>↓</i></button>
       <button type="button" onClick={() => moveToComposer('NOTE')}><strong>{grouped.NOTE?.length ?? 0}</strong> 메모 <i>↓</i></button>
     </section>

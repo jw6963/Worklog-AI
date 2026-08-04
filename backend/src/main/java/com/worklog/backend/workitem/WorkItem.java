@@ -18,6 +18,11 @@ public class WorkItem {
     @NotBlank @Column(length = 10000) private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    @Column(length = 36)
+    private String flowId;
+    private LocalDate carriedToDate;
+    private LocalDate flowCurrentDate;
+    private LocalDate flowCompletedDate;
     @ManyToOne(fetch = FetchType.EAGER)
     private Project project;
     @JsonIgnore @ManyToOne(fetch = FetchType.LAZY)
@@ -51,10 +56,18 @@ public class WorkItem {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public Project getProject() { return project; }
     public AppUser getOwner() { return owner; }
+    public String getFlowId() { return flowId; }
+    public LocalDate getCarriedToDate() { return carriedToDate; }
+    public LocalDate getFlowCurrentDate() { return flowCurrentDate; }
+    public LocalDate getFlowCompletedDate() { return flowCompletedDate; }
     public void setType(ItemType type) { this.type = type; }
     public void setContent(String content) { this.content = content; }
     public void setProject(Project project) { this.project = project; }
     public void setOwner(AppUser owner) { this.owner = owner; }
+    public void setFlowId(String flowId) { this.flowId = flowId; }
+    public void setCarriedToDate(LocalDate carriedToDate) { this.carriedToDate = carriedToDate; }
+    public void setFlowCurrentDate(LocalDate flowCurrentDate) { this.flowCurrentDate = flowCurrentDate; }
+    public void setFlowCompletedDate(LocalDate flowCompletedDate) { this.flowCompletedDate = flowCompletedDate; }
 
     @PreUpdate
     void markUpdated() { this.updatedAt = LocalDateTime.now(); }

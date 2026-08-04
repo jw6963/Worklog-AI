@@ -27,7 +27,7 @@ export function WorkSection({
   return <article className="work-section">
     <div className="section-heading">
       <h2>{title}</h2>
-      <span>{items.length}</span>
+      <span>{type === 'TODO' ? items.filter((item) => !item.carriedToDate).length : items.length}</span>
     </div>
 
     <div className="entries">

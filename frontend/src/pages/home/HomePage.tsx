@@ -19,9 +19,9 @@ export function HomePage() {
   const todayItems = items.filter((item) => item.workDate === today)
   const weekItems = items.filter((item) => item.workDate >= addDays(today, -6))
   const recentDates = useMemo(() => [...new Set(items.map((item) => item.workDate))].slice(0, 5), [items])
-  const staleTodos = items.filter((item) => item.type === 'TODO' && item.workDate < today).slice(0, 5)
+  const staleTodos = items.filter((item) => item.type === 'TODO' && !item.carriedToDate && item.workDate < today).slice(0, 5)
   const weekDone = weekItems.filter((item) => item.type === 'DONE').length
-  const weekTodo = weekItems.filter((item) => item.type === 'TODO').length
+  const weekTodo = weekItems.filter((item) => item.type === 'TODO' && !item.carriedToDate).length
   const completionRate = weekDone + weekTodo ? Math.round((weekDone / (weekDone + weekTodo)) * 100) : 0
 
   async function completeItem(item: WorkItem) {
@@ -41,7 +41,7 @@ export function HomePage() {
     {error && <div className="error">{error}</div>}
 
     <section className="stat-grid" aria-label="오늘 현황">
-      <StatCard label="오늘 할 일" value={todayItems.filter((item) => item.type === 'TODO').length} caption="남은 업무" />
+      <StatCard label="오늘 할 일" value={todayItems.filter((item) => item.type === 'TODO' && !item.carriedToDate).length} caption="남은 업무" />
       <StatCard label="오늘 완료" value={todayItems.filter((item) => item.type === 'DONE').length} caption="완료한 업무" tone="green" />
       <StatCard label="오늘 메모" value={todayItems.filter((item) => item.type === 'NOTE').length} caption="메모와 배운 점" tone="amber" />
     </section>
@@ -75,7 +75,7 @@ export function HomePage() {
           return <Link to={`/logs/${recordDate}`} key={recordDate}>
             <div className="date-tile"><strong>{new Date(`${recordDate}T12:00:00`).getDate()}</strong><span>{formatKoreanDate(recordDate, { weekday: 'short' })}</span></div>
             <div><strong>{formatKoreanDate(recordDate, { month: 'long', day: 'numeric' })}의 기록</strong><p>{records[0]?.content.replace(/[#*_`>-]/g, '').split('\n')[0]}</p></div>
-            <div className="record-counts"><span>{records.filter((item) => item.type === 'TODO').length} 할 일</span><span>{records.filter((item) => item.type === 'DONE').length} 완료</span><b>→</b></div>
+            <div className="record-counts"><span>{records.filter((item) => item.type === 'TODO' && !item.carriedToDate).length} 할 일</span><span>{records.filter((item) => item.type === 'DONE').length} 완료</span><b>→</b></div>
           </Link>
         })}
         {!recentDates.length && <p className="panel-empty">아직 기록이 없습니다. 오늘 첫 일지를 작성해 보세요.</p>}

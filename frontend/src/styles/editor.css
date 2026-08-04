@@ -47,7 +47,13 @@
 .entry-project .select-menu { width: 190px; max-width: min(190px, 60vw); }
 .entry-project .select-trigger { min-height: 30px; padding: 5px 9px 5px 10px; border-color: color-mix(in srgb, var(--project-color) 22%, #dededb); color: inherit; background-color: color-mix(in srgb, var(--project-color) 11%, white); font-size: 11px; font-weight: 650; }
 .entry-project.unassigned { color: #8b8a86; }
+.entry-project > strong { padding: 5px 9px; border-radius: 5px; color: inherit; background: color-mix(in srgb, var(--project-color) 10%, white); font-size: 11px; }
 .editing-entry .entry-project { margin: 10px 14px 0; }
+.carried-entry { border-style: dashed; background: #fafaf8; }
+.carried-entry .markdown { color: #6f6e69; }
+.carry-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding: 8px 10px; border-radius: 6px; color: #816f45; background: #f5f0e3; font-size: 10px; }
+.carry-status.completed { color: #397151; background: #eaf2ec; }
+.carry-status a { color: inherit; font-weight: 650; text-decoration: none; white-space: nowrap; }
 .editing-entry .notion-editor { min-height: 120px; }
 .save-state { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 9px 7px 14px; border-top: 1px solid #efefed; color: #9b9a97; font-size: 10px; }
 .save-state.saved { color: #397151; }

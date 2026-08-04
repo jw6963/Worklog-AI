@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import ReactMarkdown from 'react-markdown'
+import { Link } from 'react-router-dom'
 import { updateItemContent, updateItemProject } from '../../api/workItems'
 import type { ItemType, Project, WorkItem } from '../../types'
 import { RichMarkdownEditor } from './RichMarkdownEditor'
@@ -75,9 +76,9 @@ export function EditableWorkItem({ item, onUpdated, onChangeType, onRemove, proj
   const projectSelector = <div className={`entry-project ${item.project ? '' : 'unassigned'}`} style={projectStyle}>
     <i />
     <span>프로젝트</span>
-    <SelectMenu ariaLabel="프로젝트" value={String(item.project?.id ?? '')}
+    {item.carriedToDate ? <strong>{item.project?.name ?? '프로젝트 없음'}</strong> : <SelectMenu ariaLabel="프로젝트" value={String(item.project?.id ?? '')}
       options={[{ value: '', label: '프로젝트 없음', muted: true }, ...projects.map((project) => ({ value: String(project.id), label: project.name, color: project.color }))]}
-      onChange={(value) => void changeProject(value)} />
+      onChange={(value) => void changeProject(value)} />}
   </div>
 
   saveAndCloseRef.current = () => { void saveAndClose() }
@@ -100,17 +101,21 @@ export function EditableWorkItem({ item, onUpdated, onChangeType, onRemove, proj
     </div>
   </div>
 
-  return <div id={`item-${item.id}`} className="entry" tabIndex={-1} onDoubleClick={(event) => {
+  return <div id={`item-${item.id}`} className={`entry ${item.carriedToDate ? 'carried-entry' : ''}`} tabIndex={-1} onDoubleClick={(event) => {
     const target = event.target as HTMLElement
-    if (!target.closest('button, select, input, a, label')) setEditing(true)
+    if (!item.carriedToDate && !target.closest('button, select, input, a, label')) setEditing(true)
   }} style={projectStyle}>
     {projectSelector}
     <div className="markdown"><ReactMarkdown>{item.content}</ReactMarkdown></div>
+    {item.carriedToDate && <div className={`carry-status ${item.flowCompletedDate ? 'completed' : ''}`}>
+      <span>{item.carriedToDate}로 이월됨{item.flowCompletedDate ? ` · ${item.flowCompletedDate} 완료` : ''}</span>
+      {item.flowCurrentDate && <Link to={`/logs/${item.flowCurrentDate}`}>현재 항목 보기 →</Link>}
+    </div>}
     <div className="entry-actions">
-      <button onClick={() => setEditing(true)}>수정</button>
-      {item.type === 'TODO' && <button className="complete" onClick={() => onChangeType(item, 'DONE')}>완료</button>}
-      {item.type === 'DONE' && <button onClick={() => onChangeType(item, 'TODO')}>할 일로</button>}
-      <button className="delete" onClick={() => onRemove(item)}>삭제</button>
+      {!item.carriedToDate && <button onClick={() => setEditing(true)}>수정</button>}
+      {item.type === 'TODO' && !item.flowCompletedDate && <button className="complete" onClick={() => onChangeType(item, 'DONE')}>완료</button>}
+      {(item.type === 'DONE' || item.flowCompletedDate) && <button onClick={() => onChangeType(item, 'TODO')}>할 일로</button>}
+      {!item.flowId && <button className="delete" onClick={() => onRemove(item)}>삭제</button>}
     </div>
   </div>
 }
