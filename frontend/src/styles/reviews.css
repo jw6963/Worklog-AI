@@ -29,6 +29,12 @@
 .rule-summary dl > div { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 8px; }
 .rule-summary dt { color: #787774; font-size: var(--text-xs); font-weight: 650; }
 .rule-summary dd { margin: 0; color: #565550; font-size: var(--text-sm); line-height: 1.6; overflow-wrap: anywhere; }
+.insight-evaluations { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.insight-evaluations li { display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: start; gap: 9px; padding: 9px 10px; border-left: 3px solid #b8b8b4; border-radius: 5px; background: #fff; }
+.insight-evaluations li.positive { border-left-color: #5d9273; }
+.insight-evaluations li.attention { border-left-color: #c68a43; }
+.insight-evaluations li > strong { color: #65645f; font-size: var(--text-xs); }
+.insight-evaluations li > span { min-width: 0; overflow-wrap: anywhere; }
 .rule-summary > small { display: block; margin-top: 11px; padding-top: 9px; border-top: 1px solid #e3e9e1; color: #92918c; font-size: 11px; line-height: 1.5; }
 .project-distribution { display: grid; gap: 13px; }
 .project-distribution > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 7px 12px; }

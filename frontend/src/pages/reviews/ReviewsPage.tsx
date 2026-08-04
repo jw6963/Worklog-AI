@@ -105,6 +105,10 @@ export function ReviewsPage() {
     return [...counts.values()].sort((a, b) => b.count - a.count).slice(0, 6)
   }, [items])
   const activeDays = new Set(items.map((item) => item.workDate)).size
+  const previousActiveDays = new Set(previousItems.map((item) => item.workDate)).size
+  const analysisTo = range.to < localDate() ? range.to : localDate()
+  const availableDays = Math.max(1, daysBetween(range.from, analysisTo) + 1)
+  const consistencyRate = Math.round(activeDays / availableDays * 100)
   const topTopics = keywords.slice(0, 3).map(([word]) => word)
   const completedTitles = current.done.slice(0, 3).map(summaryTitle)
   const dominantProject = projectStats.find((project) => project.id != null)
@@ -118,9 +122,50 @@ export function ReviewsPage() {
   const resultSummary = completedTitles.length
     ? `완료 기록에서는 ${completedTitles.map((title) => `'${title}'`).join(', ')}${current.done.length > completedTitles.length ? ` 외 ${current.done.length - completedTitles.length}개` : ''}를 마쳤습니다.`
     : '이 기간에는 완료로 기록된 결과가 없어 구체적인 성과를 요약하기 어렵습니다.'
-  const evaluationSummary = !items.length
-    ? '기록이 쌓이면 완료 흐름과 지연 업무를 평가합니다.'
-    : `${current.rate >= 75 ? '완료 비중이 높아 마무리 흐름이 좋습니다.' : current.rate >= 40 ? '진행과 완료가 함께 쌓이고 있습니다.' : '완료보다 열린 업무 비중이 높아 우선순위 정리가 필요합니다.'} ${trend(current.rate, before.rate, '%p')}.${staleTodos.length ? ` 가장 오래 남은 할 일은 ${staleTodos[0].days}일째입니다.` : ' 장기간 남은 할 일은 없습니다.'}`
+  const dominantProjectRatio = dominantProject && items.length ? Math.round(dominantProject.count / items.length * 100) : 0
+  const unassignedRatio = unassignedProject && items.length ? Math.round(unassignedProject.count / items.length * 100) : 0
+  const itemDifference = items.length - previousItems.length
+  const rateDifference = current.rate - before.rate
+  const noteDifference = current.notes.length - before.notes.length
+  const itemComparison = itemDifference === 0 ? '이전 기간과 같은 수입니다' : `이전 기간보다 ${Math.abs(itemDifference)}개 ${itemDifference > 0 ? '많습니다' : '적습니다'}`
+  const rateComparison = rateDifference === 0 ? '이전 기간과 같습니다' : `이전 기간보다 ${Math.abs(rateDifference)}%p ${rateDifference > 0 ? '높습니다' : '낮습니다'}`
+  const noteComparison = noteDifference === 0 ? '이전 기간과 같습니다' : `이전 기간보다 ${Math.abs(noteDifference)}개 ${noteDifference > 0 ? '많습니다' : '적습니다'}`
+  const evaluationPoints = items.length ? [
+    {
+      label: '업무량', tone: 'neutral',
+      text: `${items.length}개를 기록했으며 ${itemComparison}. 기록한 날은 이전 기간 ${previousActiveDays}일에서 ${activeDays}일로 ${activeDays === previousActiveDays ? '유지됐습니다' : activeDays > previousActiveDays ? '늘었습니다' : '줄었습니다'}.`,
+    },
+    {
+      label: '완료 흐름', tone: current.rate >= 75 ? 'positive' : current.rate >= 40 ? 'neutral' : 'attention',
+      text: `완료 비율은 ${current.rate}%로 ${rateComparison}. ${current.rate >= 75 ? '열린 업무보다 마무리한 업무의 비중이 높습니다.' : current.rate >= 40 ? '진행 중인 일과 완료한 일이 함께 쌓이고 있습니다.' : '열린 업무 비중이 높아 우선순위를 다시 확인할 필요가 있습니다.'}`,
+    },
+    {
+      label: '기록 습관', tone: consistencyRate >= 70 ? 'positive' : consistencyRate >= 35 ? 'neutral' : 'attention',
+      text: `확인 가능한 ${availableDays}일 중 ${activeDays}일에 기록해 기록 지속률은 ${consistencyRate}%입니다. ${consistencyRate >= 70 ? '기간 전반에 비교적 꾸준히 기록했습니다.' : consistencyRate >= 35 ? '일부 날짜에 집중해서 기록했습니다.' : '기록하지 않은 날이 많아 흐름을 파악하기 어렵습니다.'}`,
+    },
+    {
+      label: '업무 집중', tone: dominantProjectRatio >= 70 ? 'attention' : 'neutral',
+      text: dominantProject
+        ? `'${dominantProject.name}' 프로젝트가 전체 기록의 ${dominantProjectRatio}%를 차지합니다. ${dominantProjectRatio >= 70 ? '한 프로젝트에 업무가 크게 집중되어 있습니다.' : '여러 업무 영역에 기록이 분산되어 있습니다.'}`
+        : '프로젝트가 지정된 기록이 없어 프로젝트별 집중도를 판단할 수 없습니다.',
+    },
+    {
+      label: '회고 습관', tone: current.notes.length ? 'positive' : 'attention',
+      text: current.notes.length
+        ? `메모와 배움을 ${current.notes.length}개 남겼으며 ${noteComparison}.`
+        : '메모나 배움 기록이 없어 결과 외의 과정과 판단 근거는 회고하기 어렵습니다.',
+    },
+    {
+      label: '후속 관리', tone: staleTodos.length ? 'attention' : 'positive',
+      text: staleTodos.length
+        ? `${staleTodos.length}개의 할 일이 하루 이상 남아 있고, 가장 오래된 항목은 ${staleTodos[0].days}일째입니다.`
+        : '하루 이상 장기 미완료 상태인 할 일이 없습니다.',
+    },
+    ...(unassignedRatio >= 30 ? [{
+      label: '분류 상태', tone: 'attention',
+      text: `프로젝트 미지정 기록이 전체의 ${unassignedRatio}%입니다. 프로젝트별 회고가 필요하다면 자주 보는 항목부터 분류하는 것이 좋습니다.`,
+    }] : []),
+  ] : []
 
   function move(direction: number) {
     if (period === 'WEEK') setAnchor(addDays(anchor, direction * 7))
@@ -165,7 +210,7 @@ export function ReviewsPage() {
         <div className="rule-summary"><dl>
           <div><dt>활동</dt><dd>{activitySummary}</dd></div>
           <div><dt>결과</dt><dd>{resultSummary}</dd></div>
-          <div><dt>평가</dt><dd>{evaluationSummary}</dd></div>
+          <div><dt>평가</dt><dd>{evaluationPoints.length ? <ul className="insight-evaluations">{evaluationPoints.map((point) => <li className={point.tone} key={point.label}><strong>{point.label}</strong><span>{point.text}</span></li>)}</ul> : '기록이 쌓이면 여러 기준으로 업무 흐름을 평가합니다.'}</dd></div>
         </dl><small>프로젝트, 단어 빈도, 완료 상태와 TODO 체류 기간을 기준으로 계산했습니다.</small></div>
       </section>
     </div>
