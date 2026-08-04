@@ -102,7 +102,7 @@ public class ProjectController {
         }
         if (target.isArchived()) {
             throw new org.springframework.web.server.ResponseStatusException(HttpStatus.CONFLICT,
-                    "Cannot transfer items to an archived project");
+                    "Cannot transfer items to a closed project");
         }
         List<WorkItem> assignedItems = workItemRepository.findByOwnerIdAndProjectId(owner.getId(), source.getId());
         assignedItems.forEach(item -> item.setProject(target));

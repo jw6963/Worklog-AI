@@ -17,7 +17,7 @@ export async function createProject(name: string, color: string): Promise<Projec
 
 export async function archiveProject(id: number, archived: boolean): Promise<Project> {
   const response = await apiRequest(`${API}/${id}/archived`, { method: 'PATCH', headers: jsonHeaders, body: JSON.stringify({ archived }) })
-  if (!response.ok) throw new Error('프로젝트 보관 변경 실패')
+  if (!response.ok) throw new Error('프로젝트 상태 변경 실패')
   return response.json()
 }
 

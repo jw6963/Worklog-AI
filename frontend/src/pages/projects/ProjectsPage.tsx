@@ -52,7 +52,8 @@ export function ProjectsPage() {
   }
 
   async function toggle(project: Project) {
-    try { await archiveProject(project.id, !project.archived); setMenuId(null); setMessage(project.archived ? '프로젝트를 복원했습니다.' : '프로젝트를 보관했습니다.'); await load() }
+    if (!project.archived && !window.confirm(`'${project.name}' 프로젝트를 닫을까요?\n\n기존 기록은 유지되지만 새 항목에는 지정할 수 없습니다. 언제든 다시 열 수 있습니다.`)) return
+    try { await archiveProject(project.id, !project.archived); setMenuId(null); setMessage(project.archived ? '프로젝트를 다시 열었습니다.' : '프로젝트를 닫았습니다.'); await load() }
     catch { setError('프로젝트 상태를 변경하지 못했습니다.') }
   }
 
@@ -98,13 +99,13 @@ export function ProjectsPage() {
     const transferTargets = activeProjects.filter((candidate) => candidate.id !== project.id)
     return <article className={`project-card ${project.archived ? 'archived' : ''}`} style={{ '--project-color': project.color } as CSSProperties} key={project.id}>
       <div className="project-card-head">
-        <div className="project-identity"><i /><div><strong>{project.name}</strong><span>{project.archived ? '보관됨' : project.latestWorkDate ? `최근 기록 ${formatKoreanDate(project.latestWorkDate, { month: 'short', day: 'numeric' })}` : '아직 연결된 기록 없음'}</span></div></div>
+        <div className="project-identity"><i /><div><strong>{project.name}</strong><span>{project.archived ? '닫힘' : project.latestWorkDate ? `최근 기록 ${formatKoreanDate(project.latestWorkDate, { month: 'short', day: 'numeric' })}` : '아직 연결된 기록 없음'}</span></div></div>
         <div className="project-card-menu" data-project-menu={project.id}>
           <button type="button" className="project-menu-trigger" aria-label={`${project.name} 관리 메뉴`} aria-expanded={menuId === project.id} onClick={() => setMenuId((current) => current === project.id ? null : project.id)}>···</button>
           {menuId === project.id && <div className="project-menu-popover">
             <button onClick={() => beginEdit(project)}>이름·색상 수정</button>
             <button disabled={!project.itemCount || !transferTargets.length} onClick={() => beginTransfer(project)}>항목 이관</button>
-            <button onClick={() => void toggle(project)}>{project.archived ? '프로젝트 복원' : '프로젝트 보관'}</button>
+            <button onClick={() => void toggle(project)}>{project.archived ? '프로젝트 다시 열기' : '프로젝트 닫기'}</button>
             <button className="danger" onClick={() => void remove(project)}>프로젝트 삭제</button>
           </div>}
         </div>
@@ -116,7 +117,7 @@ export function ProjectsPage() {
         <div><button onClick={() => setEditingId(null)}>취소</button><button className="primary" onClick={() => void saveEdit()}>저장</button></div>
       </div> : transferringId === project.id ? <div className="project-transfer">
         <div><strong>모든 연결 항목 이관</strong><span>이월 이력을 포함한 {project.itemCount ?? 0}개 항목의 프로젝트를 변경합니다.</span></div>
-        {transferTargets.length ? <SelectMenu ariaLabel="이관할 프로젝트" value={String(transferTargetId ?? '')} options={transferTargets.map((target) => ({ value: String(target.id), label: target.name, color: target.color }))} onChange={(value) => setTransferTargetId(Number(value))} /> : <span>이관할 활성 프로젝트가 없습니다.</span>}
+        {transferTargets.length ? <SelectMenu ariaLabel="이관할 프로젝트" value={String(transferTargetId ?? '')} options={transferTargets.map((target) => ({ value: String(target.id), label: target.name, color: target.color }))} onChange={(value) => setTransferTargetId(Number(value))} /> : <span>이관할 진행 중 프로젝트가 없습니다.</span>}
         <div><button onClick={() => setTransferringId(null)}>취소</button><button className="primary" disabled={!transferTargetId} onClick={() => void transfer(project)}>이관</button></div>
       </div> : <>
         <div className="project-card-stats">
@@ -142,9 +143,9 @@ export function ProjectsPage() {
       <div className="color-picker">{colors.map((value) => <button type="button" aria-label={`색상 ${value}`} className={color === value ? 'active' : ''} style={{ background: value }} onClick={() => setColor(value)} key={value} />)}</div>
       <button type="submit">프로젝트 추가</button>
     </form>}
-    <section className="project-section"><div className="project-section-heading"><h2>사용 중</h2><span>{activeProjects.length}</span></div><div className="project-grid">{activeProjects.map(projectCard)}</div>
-      {!activeProjects.length && !loading && <div className="empty-state"><strong>사용 중인 프로젝트가 없습니다.</strong><span>새 프로젝트를 만들어 업무를 연결해 보세요.</span></div>}
+    <section className="project-section"><div className="project-section-heading"><h2>진행 중</h2><span>{activeProjects.length}</span></div><div className="project-grid">{activeProjects.map(projectCard)}</div>
+      {!activeProjects.length && !loading && <div className="empty-state"><strong>진행 중인 프로젝트가 없습니다.</strong><span>새 프로젝트를 만들거나 닫힌 프로젝트를 다시 열어보세요.</span></div>}
     </section>
-    {!!archivedProjects.length && <section className="project-section archived-section"><div className="project-section-heading"><h2>보관됨</h2><span>{archivedProjects.length}</span></div><div className="project-grid">{archivedProjects.map(projectCard)}</div></section>}
+    {!!archivedProjects.length && <section className="project-section archived-section"><div className="project-section-heading"><h2>닫힌 프로젝트</h2><span>{archivedProjects.length}</span></div><div className="project-grid">{archivedProjects.map(projectCard)}</div></section>}
   </main>
 }
