@@ -31,3 +31,9 @@ export async function deleteProject(id: number, detachItems: boolean) {
   const response = await apiRequest(`${API}/${id}?detachItems=${detachItems}`, { method: 'DELETE' })
   if (!response.ok) throw new Error('프로젝트 삭제 실패')
 }
+
+export async function transferProjectItems(id: number, targetProjectId: number): Promise<{ movedCount: number; targetProjectId: number }> {
+  const response = await apiRequest(`${API}/${id}/transfer`, { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ targetProjectId }) })
+  if (!response.ok) throw new Error('프로젝트 이관 실패')
+  return response.json()
+}

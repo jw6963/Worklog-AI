@@ -19,6 +19,29 @@ public interface WorkItemRepository extends JpaRepository<WorkItem, Long> {
     List<WorkItem> findByOwnerIsNull();
     void deleteByOwnerId(Long ownerId);
 
+    interface ProjectStats {
+        Long getProjectId();
+        Long getItemCount();
+        Long getTodoCount();
+        Long getDoneCount();
+        Long getNoteCount();
+        LocalDate getLatestWorkDate();
+    }
+
+    @Query("""
+            select w.project.id as projectId, count(w) as itemCount,
+              sum(case when w.carriedToDate is null and w.type = com.worklog.backend.workitem.WorkItem.ItemType.TODO then 1 else 0 end) as todoCount,
+              sum(case when w.carriedToDate is null and w.type = com.worklog.backend.workitem.WorkItem.ItemType.DONE then 1 else 0 end) as doneCount,
+              sum(case when w.carriedToDate is null and w.type = com.worklog.backend.workitem.WorkItem.ItemType.NOTE then 1 else 0 end) as noteCount,
+              max(case when w.carriedToDate is null then w.workDate else null end) as latestWorkDate
+            from WorkItem w where w.owner.id = :ownerId and w.project is not null
+            group by w.project.id
+            """)
+    List<ProjectStats> summarizeByProject(@Param("ownerId") Long ownerId);
+
+    List<WorkItem> findByOwnerIdAndProjectIdAndCarriedToDateIsNullOrderByWorkDateDescCreatedAtDesc(
+            Long ownerId, Long projectId, Pageable pageable);
+
     @Query("""
             select distinct w.workDate from WorkItem w
             where w.owner.id = :ownerId and w.workDate between :from and :to

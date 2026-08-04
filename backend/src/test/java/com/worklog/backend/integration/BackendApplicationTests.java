@@ -217,4 +217,33 @@ class BackendApplicationTests {
 				null, "", 10, admin).items()).singleElement().extracting(WorkItem::getId).isEqualTo(source.getId());
 	}
 
+	@Test
+	void summarizesAndTransfersProjectActivity() {
+		Project source = projectController.create(new ProjectController.CreateProjectRequest("Source", "#4b8063"), admin);
+		Project target = projectController.create(new ProjectController.CreateProjectRequest("Target", "#4f6f9f"), admin);
+		LocalDate firstDay = LocalDate.of(2026, 8, 1);
+		LocalDate latestDay = LocalDate.of(2026, 8, 4);
+		workItemController.create(new WorkItemController.CreateRequest(firstDay, WorkItem.ItemType.TODO,
+				"open task", source.getId()), admin);
+		workItemController.create(new WorkItemController.CreateRequest(latestDay, WorkItem.ItemType.DONE,
+				"finished task", source.getId()), admin);
+		workItemController.create(new WorkItemController.CreateRequest(latestDay, WorkItem.ItemType.NOTE,
+				"learned note", source.getId()), admin);
+
+		ProjectController.ProjectView sourceView = projectController.list(admin).stream()
+				.filter(project -> project.id().equals(source.getId())).findFirst().orElseThrow();
+		assertThat(sourceView.itemCount()).isEqualTo(3);
+		assertThat(sourceView.todoCount()).isEqualTo(1);
+		assertThat(sourceView.doneCount()).isEqualTo(1);
+		assertThat(sourceView.noteCount()).isEqualTo(1);
+		assertThat(sourceView.latestWorkDate()).isEqualTo(latestDay);
+		assertThat(sourceView.recentItems()).hasSize(2);
+
+		ProjectController.TransferResponse result = projectController.transfer(source.getId(),
+				new ProjectController.TransferRequest(target.getId()), admin);
+		assertThat(result.movedCount()).isEqualTo(3);
+		assertThat(workItemRepository.findAll()).allSatisfy(item ->
+				assertThat(item.getProject().getId()).isEqualTo(target.getId()));
+	}
+
 }

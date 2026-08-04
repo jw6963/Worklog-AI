@@ -2,9 +2,14 @@ package com.worklog.backend.project;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import com.worklog.backend.auth.CurrentUser;
 import com.worklog.backend.user.AppUser;
@@ -26,10 +31,23 @@ public class ProjectController {
     @GetMapping
     public List<ProjectView> list(Authentication auth) {
         Long ownerId = currentUser.get(auth).getId();
+        Map<Long, WorkItemRepository.ProjectStats> statsByProject = workItemRepository.summarizeByProject(ownerId).stream()
+                .collect(Collectors.toMap(WorkItemRepository.ProjectStats::getProjectId, stats -> stats));
         return repository.findByOwnerIdOrderByArchivedAscNameAsc(ownerId).stream()
-                .map(project -> new ProjectView(project.getId(), project.getName(), project.getColor(),
-                        project.isArchived(), workItemRepository.countByOwnerIdAndProjectId(ownerId, project.getId())))
+                .map(project -> projectView(project, ownerId, statsByProject.get(project.getId())))
                 .toList();
+    }
+
+    private ProjectView projectView(Project project, Long ownerId, WorkItemRepository.ProjectStats stats) {
+        List<ProjectActivity> recentItems = workItemRepository
+                .findByOwnerIdAndProjectIdAndCarriedToDateIsNullOrderByWorkDateDescCreatedAtDesc(
+                        ownerId, project.getId(), PageRequest.of(0, 2)).stream()
+                .map(item -> new ProjectActivity(item.getId(), item.getWorkDate(), item.getType(), item.getContent()))
+                .toList();
+        return new ProjectView(project.getId(), project.getName(), project.getColor(), project.isArchived(),
+                stats == null ? 0 : stats.getItemCount(), stats == null ? 0 : stats.getTodoCount(),
+                stats == null ? 0 : stats.getDoneCount(), stats == null ? 0 : stats.getNoteCount(),
+                stats == null ? null : stats.getLatestWorkDate(), recentItems);
     }
 
     @PostMapping
@@ -71,6 +89,27 @@ public class ProjectController {
         repository.delete(project);
     }
 
+    @PostMapping("/{id}/transfer")
+    @org.springframework.transaction.annotation.Transactional
+    public TransferResponse transfer(@PathVariable Long id, @Valid @RequestBody TransferRequest request,
+                                     Authentication auth) {
+        AppUser owner = currentUser.get(auth);
+        Project source = repository.findByIdAndOwnerId(id, owner.getId()).orElseThrow();
+        Project target = repository.findByIdAndOwnerId(request.targetProjectId(), owner.getId()).orElseThrow();
+        if (source.getId().equals(target.getId())) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Source and target projects must be different");
+        }
+        if (target.isArchived()) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot transfer items to an archived project");
+        }
+        List<WorkItem> assignedItems = workItemRepository.findByOwnerIdAndProjectId(owner.getId(), source.getId());
+        assignedItems.forEach(item -> item.setProject(target));
+        workItemRepository.saveAll(assignedItems);
+        return new TransferResponse(assignedItems.size(), target.getId());
+    }
+
     private Project ownedProject(Long id, Authentication auth) {
         return repository.findByIdAndOwnerId(id, currentUser.get(auth).getId()).orElseThrow();
     }
@@ -78,5 +117,10 @@ public class ProjectController {
     public record CreateProjectRequest(@NotBlank String name, String color) {}
     public record ArchiveRequest(boolean archived) {}
     public record UpdateProjectRequest(@NotBlank String name, @NotBlank String color) {}
-    public record ProjectView(Long id, String name, String color, boolean archived, long itemCount) {}
+    public record ProjectActivity(Long id, LocalDate workDate, WorkItem.ItemType type, String content) {}
+    public record ProjectView(Long id, String name, String color, boolean archived, long itemCount,
+                              long todoCount, long doneCount, long noteCount, LocalDate latestWorkDate,
+                              List<ProjectActivity> recentItems) {}
+    public record TransferRequest(@NotNull Long targetProjectId) {}
+    public record TransferResponse(int movedCount, Long targetProjectId) {}
 }

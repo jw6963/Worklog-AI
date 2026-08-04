@@ -57,9 +57,8 @@
   .settings-action { width: 100%; }
   .restore-preview { align-items: stretch; flex-direction: column; }
   .project-create { grid-template-columns: 1fr; }
+  .project-grid { grid-template-columns: 1fr; }
   .project-create > button { width: 100%; }
-  .project-edit-fields { align-items: stretch; flex-direction: column; }
-  .project-edit-fields > input { min-width: 0; width: 100%; }
   .user-create, .user-list article { grid-template-columns: 1fr; }
   .user-list article > .avatar { display: none; }
   .user-badges, .user-actions { justify-content: flex-start; }

@@ -19,6 +19,11 @@ export type Project = {
   color: string
   archived: boolean
   itemCount?: number
+  todoCount?: number
+  doneCount?: number
+  noteCount?: number
+  latestWorkDate?: string | null
+  recentItems?: Array<Pick<WorkItem, 'id' | 'workDate' | 'type' | 'content'>>
 }
 
 export type ImportPreview = {
