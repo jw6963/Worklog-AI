@@ -116,6 +116,7 @@
 - Fetch API와 세션 쿠키 인증
 - 화면·기능별 `pages`, `components`, `api`, `styles` 구조
 - 일반 CSS를 역할 및 화면 단위로 분리
+- 회고의 기간·통계·키워드·평가 로직을 순수 함수 모듈로 분리하고 Vitest로 검증
 
 ### Backend
 
@@ -130,7 +131,7 @@
 - 로컬 개발: H2 파일 데이터베이스
 - 운영 체험: Render PostgreSQL
 - 웹 애플리케이션: Render Docker Web Service
-- GitHub Actions: 프론트 lint·build와 백엔드 test
+- GitHub Actions: 프론트 lint·unit test·build와 백엔드 test
 - Docker 다단계 빌드로 React 결과물을 Spring Boot JAR에 포함
 
 ## 프로젝트 구조

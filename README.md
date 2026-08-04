@@ -99,4 +99,5 @@ cd C:\worklog-ai\backend
 cd C:\worklog-ai\frontend
 npm run build
 npm run lint
+npm test
 ```
