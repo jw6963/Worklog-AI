@@ -103,8 +103,8 @@
 .composer-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px; border-top: 1px solid #efefed; }
 .composer-footer span { padding-left: 5px; color: #aaa9a5; font-size: 11px; }
 .composer-footer code { padding: 1px 3px; border-radius: 3px; color: #65645f; background: #efefed; }
-.composer-footer button { min-height: 38px; padding: 8px 13px; border: 0; border-radius: 8px; color: white; background: #37352f; font-size: var(--text-sm); font-weight: 650; }
-.composer-footer button:hover { background: #242421; }
+.composer-footer .composer-actions > button { min-height: 38px; padding: 8px 13px; border: 0; border-radius: 8px; color: white; background: #37352f; font-size: var(--text-sm); font-weight: 650; }
+.composer-footer .composer-actions > button:hover { background: #242421; }
 .composer-actions { display: flex; align-items: center; gap: 8px; }
 .composer-actions label { display: flex; align-items: center; gap: 8px; }
 .composer-actions label > span { padding: 0; color: #65645f; font-size: var(--text-sm); font-weight: 600; }
