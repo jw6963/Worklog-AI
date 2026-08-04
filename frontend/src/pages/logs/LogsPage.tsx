@@ -106,7 +106,7 @@ export function LogsPage() {
       <p>{formatKoreanDate(range.from, { year: 'numeric', month: 'short', day: 'numeric' })} – {formatKoreanDate(range.to, { year: 'numeric', month: 'short', day: 'numeric' })}</p>
     </section>
     <div className="log-filters">
-      <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이 기간의 기록에서 검색…" />
+      <input type="search" maxLength={200} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이 기간의 기록에서 검색…" />
       <SelectMenu className="project-filter-menu" ariaLabel="프로젝트 필터" value={String(projectId)}
         options={[{ value: 'ALL', label: '모든 프로젝트' }, ...projects.map((project) => ({ value: String(project.id), label: `${project.name}${project.archived ? ' (닫힘)' : ''}`, color: project.color, muted: project.archived }))]}
         onChange={(value) => {

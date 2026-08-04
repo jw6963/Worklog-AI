@@ -11,9 +11,10 @@ type Props = {
   onSubmit: () => void
   onCancel?: () => void
   autoFocus?: boolean
+  maxLength?: number
 }
 
-export function RichMarkdownEditor({ value, placeholder, onChange, onSubmit, onCancel, autoFocus = false }: Props) {
+export function RichMarkdownEditor({ value, placeholder, onChange, onSubmit, onCancel, autoFocus = false, maxLength = 10000 }: Props) {
   const submitRef = useRef(onSubmit)
   const cancelRef = useRef(onCancel)
   submitRef.current = onSubmit
@@ -46,7 +47,14 @@ export function RichMarkdownEditor({ value, placeholder, onChange, onSubmit, onC
         return false
       },
     },
-    onUpdate: ({ editor: currentEditor }) => onChange(currentEditor.getMarkdown()),
+    onUpdate: ({ editor: currentEditor }) => {
+      const markdown = currentEditor.getMarkdown()
+      if (markdown.length > maxLength) {
+        currentEditor.commands.undo()
+        return
+      }
+      onChange(markdown)
+    },
   })
 
   useEffect(() => {

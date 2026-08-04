@@ -3,6 +3,7 @@ package com.worklog.backend.user;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -64,7 +65,7 @@ public class UserAdminController {
 
     public record CreateUserRequest(
             @NotBlank @Pattern(regexp = "[a-zA-Z0-9._-]{3,40}") String username,
-            @NotBlank String displayName) {}
+            @NotBlank @Size(max = 80) String displayName) {}
     public record EnabledRequest(boolean enabled) {}
     public record UserView(Long id, String username, String displayName, AppUser.Role role,
                            boolean enabled, boolean mustChangePassword) {

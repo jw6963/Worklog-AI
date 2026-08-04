@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -84,7 +85,9 @@ public class AuthController {
         return new UserResponse(user.getUsername(), user.getDisplayName(), user.getRole(), user.isMustChangePassword());
     }
 
-    public record LoginRequest(@NotBlank String username, @NotBlank String password) {}
-    public record ChangePasswordRequest(String currentPassword, @NotBlank String newPassword) {}
+    public record LoginRequest(@NotBlank @Size(max = 40) String username,
+                               @NotBlank @Size(max = 128) String password) {}
+    public record ChangePasswordRequest(@Size(max = 128) String currentPassword,
+                                        @NotBlank @Size(min = 10, max = 128) String newPassword) {}
     public record UserResponse(String username, String displayName, AppUser.Role role, boolean mustChangePassword) {}
 }

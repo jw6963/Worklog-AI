@@ -3,6 +3,8 @@ package com.worklog.backend.project;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
@@ -114,9 +116,11 @@ public class ProjectController {
         return repository.findByIdAndOwnerId(id, currentUser.get(auth).getId()).orElseThrow();
     }
 
-    public record CreateProjectRequest(@NotBlank String name, String color) {}
+    public record CreateProjectRequest(@NotBlank @Size(max = 80) String name,
+                                       @Pattern(regexp = "#[0-9a-fA-F]{6}") String color) {}
     public record ArchiveRequest(boolean archived) {}
-    public record UpdateProjectRequest(@NotBlank String name, @NotBlank String color) {}
+    public record UpdateProjectRequest(@NotBlank @Size(max = 80) String name,
+                                       @NotBlank @Pattern(regexp = "#[0-9a-fA-F]{6}") String color) {}
     public record ProjectActivity(Long id, LocalDate workDate, WorkItem.ItemType type, String content) {}
     public record ProjectView(Long id, String name, String color, boolean archived, long itemCount,
                               long todoCount, long doneCount, long noteCount, LocalDate latestWorkDate,

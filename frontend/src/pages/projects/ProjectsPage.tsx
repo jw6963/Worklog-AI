@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { LoadState } from '../../components/ui/LoadState'
 import { SelectMenu } from '../../components/ui/SelectMenu'
+import { useConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { archiveProject, createProject, deleteProject, fetchProjects, transferProjectItems, updateProject } from '../../api/projects'
 import { formatKoreanDate } from '../../utils/date'
 import type { Project } from '../../types'
@@ -15,6 +16,7 @@ function itemTitle(content: string) {
 }
 
 export function ProjectsPage() {
+  const { confirm, dialog } = useConfirmDialog()
   const [projects, setProjects] = useState<Project[]>([])
   const [name, setName] = useState('')
   const [color, setColor] = useState(colors[0])
@@ -52,7 +54,7 @@ export function ProjectsPage() {
   }
 
   async function toggle(project: Project) {
-    if (!project.archived && !window.confirm(`'${project.name}' 프로젝트를 닫을까요?\n\n기존 기록은 유지되지만 새 항목에는 지정할 수 없습니다. 언제든 다시 열 수 있습니다.`)) return
+    if (!project.archived && !await confirm({ title: `'${project.name}' 프로젝트를 닫을까요?`, description: '기존 기록은 유지되지만 새 항목에는 지정할 수 없습니다. 언제든 다시 열 수 있습니다.', confirmLabel: '프로젝트 닫기' })) return
     try { await archiveProject(project.id, !project.archived); setMenuId(null); setMessage(project.archived ? '프로젝트를 다시 열었습니다.' : '프로젝트를 닫았습니다.'); await load() }
     catch { setError('프로젝트 상태를 변경하지 못했습니다.') }
   }
@@ -75,7 +77,7 @@ export function ProjectsPage() {
   async function transfer(project: Project) {
     if (!transferTargetId) return
     const target = projects.find((candidate) => candidate.id === transferTargetId)
-    if (!target || !window.confirm(`'${project.name}'의 연결 항목 ${project.itemCount ?? 0}개를 '${target.name}' 프로젝트로 이관할까요?`)) return
+    if (!target || !await confirm({ title: '프로젝트 항목을 이관할까요?', description: `'${project.name}'의 연결 항목 ${project.itemCount ?? 0}개가 '${target.name}' 프로젝트로 이동합니다.`, confirmLabel: '이관' })) return
     try {
       const result = await transferProjectItems(project.id, target.id)
       setTransferringId(null); setTransferTargetId(null); setMessage(`${result.movedCount}개 항목을 '${target.name}'으로 이관했습니다.`); await load()
@@ -84,10 +86,10 @@ export function ProjectsPage() {
 
   async function remove(project: Project) {
     const assignedCount = project.itemCount ?? 0
-    const prompt = assignedCount
+    const description = assignedCount
       ? `이 프로젝트가 ${assignedCount}개 항목에 지정되어 있습니다.\n\n항목은 삭제하지 않고 프로젝트 지정만 해제한 뒤 프로젝트를 삭제할까요?`
-      : `'${project.name}' 프로젝트를 삭제할까요?`
-    if (!window.confirm(prompt)) return
+      : '연결된 항목은 없으며 삭제 후 되돌릴 수 없습니다.'
+    if (!await confirm({ title: `'${project.name}' 프로젝트를 삭제할까요?`, description, confirmLabel: '삭제', danger: true })) return
     try { await deleteProject(project.id, assignedCount > 0); setMenuId(null); setMessage('프로젝트를 삭제했습니다.'); await load() }
     catch { setError('프로젝트를 삭제하지 못했습니다.') }
   }
@@ -147,5 +149,6 @@ export function ProjectsPage() {
       {!activeProjects.length && !loading && <div className="empty-state"><strong>진행 중인 프로젝트가 없습니다.</strong><span>새 프로젝트를 만들거나 닫힌 프로젝트를 다시 열어보세요.</span></div>}
     </section>
     {!!archivedProjects.length && <section className="project-section archived-section"><div className="project-section-heading"><h2>닫힌 프로젝트</h2><span>{archivedProjects.length}</span></div><div className="project-grid">{archivedProjects.map(projectCard)}</div></section>}
+    {dialog}
   </main>
 }

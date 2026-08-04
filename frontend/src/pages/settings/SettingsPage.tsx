@@ -2,8 +2,10 @@ import { useRef, useState, type FormEvent } from 'react'
 import { fetchBackup, restoreBackup, type BackupData } from '../../api/backup'
 import { localDate } from '../../utils/date'
 import { useAuth } from '../../auth/useAuth'
+import { useConfirmDialog } from '../../components/ui/ConfirmDialog'
 
 export function SettingsPage() {
+  const { confirm, dialog } = useConfirmDialog()
   const { changePassword } = useAuth()
   const input = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<BackupData | null>(null)
@@ -45,15 +47,18 @@ export function SettingsPage() {
 
   async function selectFile(file: File) {
     try {
+      if (file.size > 10 * 1024 * 1024) throw new Error()
       const data = JSON.parse(await file.text()) as BackupData
-      if (![1, 2, 3].includes(data.schemaVersion) || !Array.isArray(data.items) || data.items.some((item) => !item.workDate || !item.type || !item.content)) throw new Error()
+      if (![1, 2, 3].includes(data.schemaVersion) || !Array.isArray(data.items)
+        || data.items.some((item) => !item.workDate || !item.type || !item.content || item.content.length > 10000)
+        || data.projects?.some((project) => !project.name || project.name.length > 80)) throw new Error()
       setPreview(data); setFileName(file.name); setMessage('')
     } catch { setPreview(null); setMessage('지원하지 않거나 손상된 백업 파일입니다.') }
   }
 
   async function restore() {
     if (!preview) return
-    if (!window.confirm(`현재 기록과 프로젝트를 모두 지우고 ${preview.items.length}개 기록으로 교체할까요?\n\n이 작업 전 현재 데이터를 먼저 백업하는 것을 권장합니다.`)) return
+    if (!await confirm({ title: '현재 데이터를 백업 내용으로 교체할까요?', description: `현재 기록과 프로젝트를 모두 지우고 ${preview.items.length}개 기록으로 교체합니다.\n\n복원 전에 현재 데이터를 먼저 백업하는 것을 권장합니다.`, confirmLabel: '전체 교체 후 복원', danger: true, requiredText: '복원' })) return
     setWorking(true)
     try {
       const restored = await restoreBackup(preview, true)
@@ -67,9 +72,9 @@ export function SettingsPage() {
     <section className="settings-card password-settings-card">
       <div><h2>내 비밀번호 변경</h2><p>현재 비밀번호를 확인한 뒤 10자 이상의 새 비밀번호로 변경합니다.</p></div>
       <form className="password-settings-form" onSubmit={(event) => void submitPassword(event)}>
-        <input required type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} placeholder="현재 비밀번호" />
-        <input required minLength={10} type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="새 비밀번호 (10자 이상)" />
-        <input required minLength={10} type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="새 비밀번호 확인" />
+        <input required type="password" autoComplete="current-password" maxLength={128} value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} placeholder="현재 비밀번호" />
+        <input required minLength={10} maxLength={128} type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="새 비밀번호 (10자 이상)" />
+        <input required minLength={10} maxLength={128} type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="새 비밀번호 확인" />
         {passwordMessage && <p className="password-settings-message" role="status">{passwordMessage}</p>}
         <button className="settings-action" disabled={changingPassword}>{changingPassword ? '변경 중...' : '비밀번호 변경'}</button>
       </form>
@@ -86,5 +91,6 @@ export function SettingsPage() {
       {preview && <div className="restore-preview"><div><strong>{fileName}</strong><span>스키마 v{preview.schemaVersion} · 기록 {preview.items.length}개 · 프로젝트 {preview.projects?.length ?? 0}개</span></div><button disabled={working} onClick={() => void restore()}>전체 교체 후 복원</button></div>}
     </section>
     <section className="settings-info"><strong>현재 데이터 저장 위치</strong><code>C:\worklog-ai\backend\data\worklog.mv.db</code><p>JSON 파일은 Git 비공개 저장소나 허용된 클라우드에 보관할 수 있습니다.</p></section>
+    {dialog}
   </main>
 }

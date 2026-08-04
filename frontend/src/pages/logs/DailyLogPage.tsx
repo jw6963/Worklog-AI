@@ -4,6 +4,7 @@ import { AppHeader } from '../../components/layout/AppHeader'
 import { ImportModal } from '../../components/import/ImportModal'
 import { WorkSection } from '../../components/editor/WorkSection'
 import { LoadState } from '../../components/ui/LoadState'
+import { useConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { cancelCarryOver, carryOverItems, createItem, deleteItem, fetchItems, updateItemType } from '../../api/workItems'
 import { fetchProjects } from '../../api/projects'
 import { addDays, localDate } from '../../utils/date'
@@ -17,6 +18,7 @@ const sections: { type: ItemType; title: string; hint: string; addLabel: string 
 ]
 
 export function DailyLogPage() {
+  const { confirm, dialog } = useConfirmDialog()
   const { date: routeDate } = useParams()
   const { hash } = useLocation()
   const navigate = useNavigate()
@@ -131,7 +133,7 @@ export function DailyLogPage() {
   }
 
   async function undoCarryOver(item: WorkItem) {
-    if (!window.confirm(`${item.flowCurrentDate ?? '현재 날짜'}의 이월 항목을 삭제하고 이전 날짜의 TODO로 되돌릴까요?`)) return
+    if (!await confirm({ title: '이월을 취소할까요?', description: `${item.flowCurrentDate ?? '현재 날짜'}의 이월 항목을 삭제하고 이전 날짜의 TODO로 되돌립니다.`, confirmLabel: '이월 취소', danger: true })) return
     try {
       const restored = await cancelCarryOver(item.id)
       setCarryMessage(`${restored.workDate}의 할 일로 되돌렸습니다.`)
@@ -149,7 +151,9 @@ export function DailyLogPage() {
 
   async function chooseMarkdown(file: File) {
     try {
+      if (file.size > 1024 * 1024) throw new Error()
       const preview = parseMarkdown(file.name, await file.text(), date)
+      if (getImportEntries(preview).some((entry) => entry.content.length > 10000)) throw new Error()
       setImportPreview(preview)
       setImportMode('append')
       setImportProjectIds(Object.fromEntries(getImportEntries(preview).map((entry) => [entry.key, null])))
@@ -211,5 +215,6 @@ export function DailyLogPage() {
       onPreviewChange={setImportPreview} onModeChange={setImportMode} onClose={() => setImportPreview(null)}
       onImport={() => void importMarkdown()} />}
     {deletedItem && <div className="undo-toast"><span>기록을 삭제했습니다.</span><button onClick={() => void undoDelete()}>실행 취소</button></div>}
+    {dialog}
   </main>
 }

@@ -3,6 +3,7 @@ package com.worklog.backend.workitem;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
@@ -58,6 +59,10 @@ public class WorkItemController {
         if (from.isAfter(to)) {
             throw new org.springframework.web.server.ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "from must be on or before to");
+        }
+        if (query.length() > 200) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "query must not exceed 200 characters");
         }
         Long ownerId = currentUser.get(auth).getId();
         int limit = Math.max(1, Math.min(limitDays, 30));
@@ -275,16 +280,16 @@ public class WorkItemController {
     }
 
     public record CreateRequest(@NotNull LocalDate workDate, @NotNull WorkItem.ItemType type,
-                                @NotBlank String content, Long projectId) {}
+                                @NotBlank @Size(max = 10000) String content, Long projectId) {}
     public record TypeRequest(@NotNull WorkItem.ItemType type) {}
-    public record ContentRequest(@NotBlank String content) {}
+    public record ContentRequest(@NotBlank @Size(max = 10000) String content) {}
     public record ProjectRequest(Long projectId) {}
     public record SearchResponse(List<WorkItem> items, boolean hasMore, LocalDate nextBeforeDate,
                                  long totalItems, long totalDays) {}
     public record CarryOverRequest(@NotNull LocalDate fromDate, @NotNull LocalDate toDate) {}
-    public record BackupProject(Long id, @NotBlank String name, String color, boolean archived) {}
+    public record BackupProject(Long id, @NotBlank @Size(max = 80) String name, @Size(max = 20) String color, boolean archived) {}
     public record BackupItem(@NotNull LocalDate workDate, @NotNull WorkItem.ItemType type,
-                             @NotBlank String content, Long projectId, String flowId,
+                             @NotBlank @Size(max = 10000) String content, Long projectId, @Size(max = 36) String flowId,
                              LocalDate carriedToDate, LocalDate flowCurrentDate, LocalDate flowCompletedDate) {}
     public record BackupResponse(int schemaVersion, Instant exportedAt, List<BackupProject> projects,
                                  List<BackupItem> items) {}

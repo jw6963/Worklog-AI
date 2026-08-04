@@ -32,8 +32,8 @@ export function LoginPage() {
     <section className="login-card">
       <div className="login-heading"><span>WELCOME BACK</span><h1>다시 기록해볼까요?</h1><p>관리자가 등록한 계정으로 로그인하세요.</p></div>
       <form onSubmit={(event) => void submit(event)}>
-        <label><span>아이디</span><input autoFocus autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="아이디 입력" /></label>
-        <label><span>비밀번호</span><input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="비밀번호 입력" /></label>
+        <label><span>아이디</span><input autoFocus autoComplete="username" maxLength={40} value={username} onChange={(event) => setUsername(event.target.value)} placeholder="아이디 입력" /></label>
+        <label><span>비밀번호</span><input type="password" autoComplete="current-password" maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="비밀번호 입력" /></label>
         {error && <div className="login-error" role="alert">{error}</div>}
         <button disabled={submitting || !username.trim() || !password} type="submit">{submitting ? '로그인 중...' : '로그인'}</button>
       </form>

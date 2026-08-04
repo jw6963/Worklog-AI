@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { createUser, fetchUsers, resetUserPassword, setUserEnabled, type ManagedUser } from '../../api/users'
+import { useConfirmDialog } from '../../components/ui/ConfirmDialog'
 
 export function UsersPage() {
+  const { confirm, dialog } = useConfirmDialog()
   const [users, setUsers] = useState<ManagedUser[]>([])
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -29,7 +31,7 @@ export function UsersPage() {
   }
 
   async function reset(user: ManagedUser) {
-    if (!window.confirm(`${user.displayName} 사용자의 비밀번호를 초기화할까요?`)) return
+    if (!await confirm({ title: '비밀번호를 초기화할까요?', description: `${user.displayName} 사용자는 다음 로그인 후 새 비밀번호를 설정해야 합니다.`, confirmLabel: '초기화', danger: true })) return
     try {
       const result = await resetUserPassword(user.id)
       setUsers((current) => current.map((item) => item.id === result.user.id ? result.user : item))
@@ -42,8 +44,8 @@ export function UsersPage() {
     {message && <div className="settings-message">{message}</div>}
     <form className="user-create" onSubmit={(event) => void submit(event)}>
       <div><h2>새 사용자</h2><p>생성된 임시 비밀번호는 한 번만 표시됩니다.</p></div>
-      <input required minLength={3} pattern="[a-zA-Z0-9._-]+" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="아이디" />
-      <input required value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="표시 이름" />
+      <input required minLength={3} maxLength={40} pattern="[a-zA-Z0-9._-]+" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="아이디" />
+      <input required maxLength={80} value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="표시 이름" />
       <button disabled={working}>계정 생성</button>
     </form>
     <section className="user-list">
@@ -55,5 +57,6 @@ export function UsersPage() {
       </article>)}
     </section>
     {temporaryPassword && <div className="temporary-password-modal" role="dialog" aria-modal="true"><div><span>임시 비밀번호</span><h2>사용자에게 안전하게 전달하세요.</h2><code>{temporaryPassword}</code><p>이 창을 닫으면 다시 확인할 수 없습니다. 사용자는 최초 로그인 직후 새 비밀번호를 설정해야 합니다.</p><div><button onClick={() => void navigator.clipboard.writeText(temporaryPassword)}>복사</button><button className="primary" onClick={() => setTemporaryPassword('')}>확인</button></div></div></div>}
+    {dialog}
   </main>
 }

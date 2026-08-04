@@ -12,8 +12,8 @@
 .stat-card.green strong { color: #397151; }
 .stat-card.amber { background: #faf7ef; }
 .stat-card.amber strong { color: #8a6a31; }
-.home-columns { display: grid; grid-template-columns: 1.05fr .95fr; gap: 14px; margin-top: 14px; }
-.home-panel { padding: 22px; border: 1px solid #e7e7e4; border-radius: 10px; background: #fff; }
+.home-columns { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 14px; margin-top: 14px; }
+.home-panel { min-width: 0; padding: 22px; border: 1px solid #e7e7e4; border-radius: 10px; background: #fff; }
 .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 .panel-heading > div > span { color: #9b9a97; font-size: 9px; font-weight: 700; letter-spacing: .12em; }
 .panel-heading h2 { margin: 4px 0 0; font-size: 20px; }
@@ -30,7 +30,7 @@
 .stale-panel li + li { border-top: 1px solid #efefed; }
 .stale-panel li { display: flex; align-items: center; gap: 8px; }
 .stale-panel li a { display: flex; min-width: 0; flex: 1; justify-content: space-between; gap: 12px; padding: 9px 0; color: #4b4a46; font-size: 12px; text-decoration: none; }
-.stale-panel li a > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stale-panel li a > span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stale-panel small { color: #9b9a97; white-space: nowrap; }
 .quick-complete { display: grid; width: 21px; height: 21px; padding: 0; border: 1px solid #cfcec9; border-radius: 50%; place-items: center; color: transparent; background: #fff; font-size: 11px; }
 .quick-complete:hover { border-color: #4b8063; color: #fff; background: #4b8063; }
