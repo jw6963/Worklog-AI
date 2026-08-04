@@ -46,6 +46,18 @@ function itemTitle(item: WorkItem) {
   return item.content.replace(/[#*_`>\-[\]]/g, '').split('\n').find((line) => line.trim())?.trim() ?? item.content
 }
 
+function summaryTitle(item: WorkItem) {
+  const title = itemTitle(item)
+  return title.length > 42 ? `${title.slice(0, 42)}…` : title
+}
+
+function meaningfulKeyword(word: string) {
+  if (word.length < 2 || word.length > 24 || !/[가-힣a-zA-Z]/.test(word)) return false
+  const normalized = word.toLowerCase()
+  const letters = normalized.replace(/[^가-힣a-z]/g, '')
+  return new Set(letters).size > 1 && !/(.)\1{4,}/.test(normalized)
+}
+
 const stopWords = new Set(['그리고', '에서', '으로', '하는', '했다', '합니다', '대한', '위해', '현재', '경우', '사용', '작업', '기록'])
 
 export function ReviewsPage() {
@@ -78,7 +90,7 @@ export function ReviewsPage() {
   const keywords = useMemo(() => {
     const counts = new Map<string, number>()
     items.flatMap((item) => item.content.replace(/[^가-힣a-zA-Z0-9\s]/g, ' ').split(/\s+/))
-      .map((word) => word.toLowerCase()).filter((word) => word.length >= 2 && !stopWords.has(word))
+      .map((word) => word.toLowerCase()).filter((word) => meaningfulKeyword(word) && !stopWords.has(word))
       .forEach((word) => counts.set(word, (counts.get(word) ?? 0) + 1))
     return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
   }, [items])
@@ -94,7 +106,7 @@ export function ReviewsPage() {
   }, [items])
   const activeDays = new Set(items.map((item) => item.workDate)).size
   const topTopics = keywords.slice(0, 3).map(([word]) => word)
-  const completedTitles = current.done.slice(0, 3).map(itemTitle)
+  const completedTitles = current.done.slice(0, 3).map(summaryTitle)
   const dominantProject = projectStats.find((project) => project.id != null)
   const unassignedProject = projectStats.find((project) => project.id == null)
   const projectSummary = dominantProject
@@ -148,7 +160,9 @@ export function ReviewsPage() {
       <section className="review-panel"><div className="panel-heading"><div><span>KEYWORDS</span><h2>자주 기록한 주제</h2></div></div>
         <div className="keyword-cloud">{keywords.map(([word, count]) => <span key={word}><em>{word}</em><b>{count}</b></span>)}</div>
         {!keywords.length && <p className="panel-empty">분석할 기록이 없습니다.</p>}
-        <div className="rule-summary"><strong>규칙 기반 기간 분석</strong><dl>
+      </section>
+      <section className="review-panel insight-panel"><div className="panel-heading"><div><span>PERIOD INSIGHT</span><h2>규칙 기반 기간 분석</h2></div></div>
+        <div className="rule-summary"><dl>
           <div><dt>활동</dt><dd>{activitySummary}</dd></div>
           <div><dt>결과</dt><dd>{resultSummary}</dd></div>
           <div><dt>평가</dt><dd>{evaluationSummary}</dd></div>
