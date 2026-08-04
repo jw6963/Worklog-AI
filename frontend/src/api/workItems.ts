@@ -66,3 +66,9 @@ export async function carryOverItems(fromDate: string, toDate: string): Promise<
   if (!response.ok) throw new Error('미완료 업무 가져오기 실패')
   return response.json()
 }
+
+export async function cancelCarryOver(id: number): Promise<WorkItem> {
+  const response = await apiRequest(`${API}/${id}/cancel-carry-over`, { method: 'POST' })
+  if (!response.ok) throw new Error('이월 취소 실패')
+  return response.json()
+}

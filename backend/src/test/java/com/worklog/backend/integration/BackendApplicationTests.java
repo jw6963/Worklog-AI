@@ -198,4 +198,23 @@ class BackendApplicationTests {
 		assertThat(second.hasMore()).isFalse();
 	}
 
+	@Test
+	void cancelsOnlyTheLatestOpenCarryOver() {
+		LocalDate yesterday = LocalDate.of(2026, 8, 3);
+		LocalDate today = LocalDate.of(2026, 8, 4);
+		WorkItem source = workItemController.create(new WorkItemController.CreateRequest(
+				yesterday, WorkItem.ItemType.TODO, "cancelled carry", null), admin);
+		WorkItem current = workItemController.carryOver(
+				new WorkItemController.CarryOverRequest(yesterday, today), admin).getFirst();
+
+		WorkItem restored = workItemController.cancelCarryOver(current.getId(), admin);
+
+		assertThat(restored.getId()).isEqualTo(source.getId());
+		assertThat(restored.getCarriedToDate()).isNull();
+		assertThat(restored.getFlowCurrentDate()).isEqualTo(yesterday);
+		assertThat(workItemRepository.findById(current.getId())).isEmpty();
+		assertThat(workItemController.search(yesterday, today, null, WorkItem.ItemType.TODO,
+				null, "", 10, admin).items()).singleElement().extracting(WorkItem::getId).isEqualTo(source.getId());
+	}
+
 }

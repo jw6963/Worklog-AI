@@ -12,10 +12,11 @@ type Props = {
   onUpdated: (item: WorkItem) => void
   onChangeType: (item: WorkItem, type: ItemType) => void
   onRemove: (item: WorkItem) => void
+  onCancelCarryOver: (item: WorkItem) => void
   projects: Project[]
 }
 
-export function EditableWorkItem({ item, onUpdated, onChangeType, onRemove, projects }: Props) {
+export function EditableWorkItem({ item, onUpdated, onChangeType, onRemove, onCancelCarryOver, projects }: Props) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(item.content)
   const [saveState, setSaveState] = useState<'idle' | 'waiting' | 'saving' | 'saved' | 'error'>('idle')
@@ -128,6 +129,7 @@ export function EditableWorkItem({ item, onUpdated, onChangeType, onRemove, proj
       {!item.carriedToDate && <button onClick={() => setEditing(true)}>수정</button>}
       {item.type === 'TODO' && !item.flowCompletedDate && <button className="complete" onClick={() => onChangeType(item, 'DONE')}>완료</button>}
       {(item.type === 'DONE' || item.flowCompletedDate) && <button onClick={() => onChangeType(item, 'TODO')}>할 일로</button>}
+      {item.flowId && !item.carriedToDate && item.type === 'TODO' && <button onClick={() => onCancelCarryOver(item)}>이월 취소</button>}
       {!item.flowId && <button className="delete" onClick={() => onRemove(item)}>삭제</button>}
     </div>
   </div>

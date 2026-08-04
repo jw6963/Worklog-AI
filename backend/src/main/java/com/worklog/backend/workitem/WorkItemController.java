@@ -115,6 +115,38 @@ public class WorkItemController {
         return repository.saveAll(copies);
     }
 
+    @PostMapping("/{id}/cancel-carry-over")
+    @org.springframework.transaction.annotation.Transactional
+    public WorkItem cancelCarryOver(@PathVariable Long id, Authentication auth) {
+        AppUser owner = currentUser.get(auth);
+        WorkItem current = repository.findByIdAndOwnerId(id, owner.getId()).orElseThrow();
+        if (current.getFlowId() == null || current.getCarriedToDate() != null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.CONFLICT, "Only the current carried item can be restored");
+        }
+        if (current.getType() != WorkItem.ItemType.TODO) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.CONFLICT, "Completed work must be reopened before cancelling carry-over");
+        }
+        List<WorkItem> flow = new java.util.ArrayList<>(
+                repository.findByOwnerIdAndFlowIdOrderByWorkDateAscCreatedAtAsc(owner.getId(), current.getFlowId()));
+        int currentIndex = flow.indexOf(current);
+        if (currentIndex < 1) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.CONFLICT, "The carried source item no longer exists");
+        }
+        WorkItem previous = flow.get(currentIndex - 1);
+        flow.remove(current);
+        repository.delete(current);
+        previous.setCarriedToDate(null);
+        flow.forEach(linked -> {
+            linked.setFlowCurrentDate(previous.getWorkDate());
+            linked.setFlowCompletedDate(null);
+        });
+        repository.saveAll(flow);
+        return previous;
+    }
+
     @GetMapping("/backup")
     public BackupResponse backup(Authentication auth) {
         AppUser owner = currentUser.get(auth);

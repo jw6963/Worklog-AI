@@ -3,7 +3,7 @@ import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../../components/layout/AppHeader'
 import { ImportModal } from '../../components/import/ImportModal'
 import { WorkSection } from '../../components/editor/WorkSection'
-import { carryOverItems, createItem, deleteItem, fetchItems, updateItemType } from '../../api/workItems'
+import { cancelCarryOver, carryOverItems, createItem, deleteItem, fetchItems, updateItemType } from '../../api/workItems'
 import { fetchProjects } from '../../api/projects'
 import { addDays, localDate } from '../../utils/date'
 import { createMarkdownExport, getImportEntries, parseMarkdown, validDate } from '../../utils/markdown'
@@ -114,6 +114,16 @@ export function DailyLogPage() {
     } catch { setError('전날 미완료 업무를 가져오지 못했습니다.') }
   }
 
+  async function undoCarryOver(item: WorkItem) {
+    if (!window.confirm(`${item.flowCurrentDate ?? '현재 날짜'}의 이월 항목을 삭제하고 이전 날짜의 TODO로 되돌릴까요?`)) return
+    try {
+      const restored = await cancelCarryOver(item.id)
+      setCarryMessage(`${restored.workDate}의 할 일로 되돌렸습니다.`)
+      if (restored.workDate === date) await load()
+      else navigate(`/logs/${restored.workDate}#item-${restored.id}`)
+    } catch { setError('이월을 취소하지 못했습니다. 완료된 업무라면 먼저 할 일로 되돌려 주세요.') }
+  }
+
   function exportMarkdown() {
     const blob = new Blob([createMarkdownExport(date, grouped)], { type: 'text/markdown;charset=utf-8' })
     const url = URL.createObjectURL(blob)
@@ -173,6 +183,7 @@ export function DailyLogPage() {
         onDraftChange={(value) => setDrafts((current) => ({ ...current, [section.type]: value }))}
         onAdd={() => void add(section.type)} onChangeType={(item, type) => void changeType(item, type)}
         onRemove={(id) => void remove(id)}
+        onCancelCarryOver={(item) => void undoCarryOver(item)}
         onUpdated={(updated) => setItems((current) => current.map((item) => item.id === updated.id ? updated : item))}
         projects={projects} projectId={draftProjects[section.type]}
         onProjectChange={(projectId) => setDraftProjects((current) => ({ ...current, [section.type]: projectId }))} />)}

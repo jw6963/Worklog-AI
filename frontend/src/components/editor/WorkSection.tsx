@@ -14,6 +14,7 @@ type Props = {
   onAdd: () => void
   onChangeType: (item: WorkItem, type: ItemType) => void
   onRemove: (id: number) => void
+  onCancelCarryOver: (item: WorkItem) => void
   onUpdated: (item: WorkItem) => void
   projects: Project[]
   projectId: number | null
@@ -22,7 +23,7 @@ type Props = {
 
 export function WorkSection({
   type, title, hint, addLabel, items, draft,
-  onDraftChange, onAdd, onChangeType, onRemove, onUpdated, projects, projectId, onProjectChange,
+  onDraftChange, onAdd, onChangeType, onRemove, onCancelCarryOver, onUpdated, projects, projectId, onProjectChange,
 }: Props) {
   return <article className="work-section">
     <div className="section-heading">
@@ -32,7 +33,7 @@ export function WorkSection({
 
     <div className="entries">
       {items.map((item) => <EditableWorkItem key={item.id} item={item} onUpdated={onUpdated}
-        onChangeType={onChangeType} onRemove={() => onRemove(item.id)} projects={projects} />)}
+        onChangeType={onChangeType} onRemove={() => onRemove(item.id)} onCancelCarryOver={onCancelCarryOver} projects={projects} />)}
       {!items.length && <p className="empty">아직 기록이 없습니다.</p>}
     </div>
 
