@@ -100,6 +100,7 @@ export function SettingsPage() {
 
   return <main className="page settings-page">
     <div className="page-heading"><div><span className="page-kicker">SETTINGS</span><h1>설정</h1><p>기록을 백업하고 새 환경에서 복원할 수 있습니다.</p></div></div>
+    <div className="settings-section-title"><span>ACCOUNT</span><div><h2>계정 설정</h2><p>내 정보와 로그인 보안을 관리합니다.</p></div></div>
     <section className="settings-card profile-settings-card">
       <div><h2>내 프로필</h2><p>사이드바에 표시되는 이름과 프로필 이미지를 변경합니다. JPEG, PNG, WebP 형식을 2MB까지 사용할 수 있습니다.</p></div>
       <form className="profile-settings-form" onSubmit={(event) => void submitProfile(event)}>
@@ -128,6 +129,7 @@ export function SettingsPage() {
         <button className="settings-action" disabled={changingPassword}>{changingPassword ? '변경 중...' : '비밀번호 변경'}</button>
       </form>
     </section>
+    <div className="settings-section-title"><span>DATA</span><div><h2>데이터 관리</h2><p>기록을 안전하게 내보내거나 복원합니다.</p></div></div>
     {message && <div className="settings-message">{message}</div>}
     <section className="settings-card">
       <div><h2>JSON 전체 백업</h2><p>모든 날짜의 기록을 하나의 JSON 파일로 내려받습니다. 새 PC에서 원본 그대로 복원할 때 사용하세요.</p></div>

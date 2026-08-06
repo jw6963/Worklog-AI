@@ -54,6 +54,8 @@
   .review-nav { flex-wrap: wrap; }
   .review-nav strong { min-width: 190px; }
   .settings-card { grid-template-columns: 1fr; }
+  .settings-page { grid-template-columns: 1fr; }
+  .settings-page > .settings-card > div:first-child { min-height: 0; }
   .profile-settings-form { width: 100%; }
   .settings-action { width: 100%; }
   .restore-preview { align-items: stretch; flex-direction: column; }

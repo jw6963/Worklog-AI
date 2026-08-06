@@ -42,12 +42,12 @@ export function AppShell() {
         {user?.role === 'ADMIN' && <NavLink to="/users"><NavIcon name="users" />사용자</NavLink>}
       </nav>
       <div className="sidebar-bottom">
-        <div className="sidebar-user">
+        <NavLink className="sidebar-user" to="/settings" aria-label="프로필 설정 열기">
           <div className="avatar">{user?.hasAvatar
             ? <img src={`/api/auth/avatar?v=${user.avatarVersion}`} alt="" />
             : user?.displayName.slice(0, 1) ?? 'W'}</div>
           <div><strong>{user?.displayName}</strong><span>{user?.username}</span></div>
-        </div>
+        </NavLink>
         <button className="logout-button" type="button" onClick={handleLogout}>로그아웃</button>
       </div>
     </aside>
