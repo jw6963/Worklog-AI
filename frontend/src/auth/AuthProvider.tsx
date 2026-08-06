@@ -23,8 +23,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ username, password }),
       })
       if (!response.ok) {
-        const failure = await response.json().catch(() => null) as { message?: string; lockedUntil?: string } | null
-        throw new LoginError(failure?.message ?? '아이디 또는 비밀번호를 확인해 주세요.', failure?.lockedUntil)
+        const failure = await response.json().catch(() => null) as { message?: string; lockedUntil?: string; failedAttempts?: number; remainingAttempts?: number } | null
+        throw new LoginError(failure?.message ?? '아이디 또는 비밀번호를 확인해 주세요.', failure?.lockedUntil,
+          failure?.failedAttempts, failure?.remainingAttempts)
       }
       setUser(await response.json())
     },

@@ -10,6 +10,7 @@ export function UsersPage() {
   const [temporaryPassword, setTemporaryPassword] = useState('')
   const [message, setMessage] = useState('')
   const [working, setWorking] = useState(false)
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
 
   useEffect(() => { void fetchUsers().then(setUsers).catch((error: Error) => setMessage(error.message)) }, [])
 
@@ -17,7 +18,7 @@ export function UsersPage() {
     event.preventDefault(); setWorking(true); setMessage('')
     try {
       const result = await createUser(username, displayName)
-      setUsers((current) => [...current, result.user]); setTemporaryPassword(result.temporaryPassword)
+      setUsers((current) => [...current, result.user]); setTemporaryPassword(result.temporaryPassword); setCopyState('idle')
       setUsername(''); setDisplayName('')
     } catch (error) { setMessage(error instanceof Error ? error.message : '계정을 생성하지 못했습니다.') }
     finally { setWorking(false) }
@@ -36,6 +37,7 @@ export function UsersPage() {
       const result = await resetUserPassword(user.id)
       setUsers((current) => current.map((item) => item.id === result.user.id ? result.user : item))
       setTemporaryPassword(result.temporaryPassword)
+      setCopyState('idle')
     } catch (error) { setMessage(error instanceof Error ? error.message : '초기화하지 못했습니다.') }
   }
 
@@ -56,7 +58,7 @@ export function UsersPage() {
         <div className="user-actions">{user.role !== 'ADMIN' && <button type="button" onClick={() => void toggle(user)}>{user.enabled ? '비활성화' : '활성화'}</button>}<button type="button" onClick={() => void reset(user)}>비밀번호 초기화</button></div>
       </article>)}
     </section>
-    {temporaryPassword && <div className="temporary-password-modal" role="dialog" aria-modal="true"><div><span>임시 비밀번호</span><h2>사용자에게 안전하게 전달하세요.</h2><code>{temporaryPassword}</code><p>이 창을 닫으면 다시 확인할 수 없습니다. 사용자는 최초 로그인 직후 새 비밀번호를 설정해야 합니다.</p><div><button onClick={() => void navigator.clipboard.writeText(temporaryPassword)}>복사</button><button className="primary" onClick={() => setTemporaryPassword('')}>확인</button></div></div></div>}
+    {temporaryPassword && <div className="temporary-password-modal" role="dialog" aria-modal="true"><div><span>임시 비밀번호</span><h2>사용자에게 안전하게 전달하세요.</h2><code>{temporaryPassword}</code><p>이 창을 닫으면 다시 확인할 수 없습니다. 사용자는 최초 로그인 직후 새 비밀번호를 설정해야 합니다.</p>{copyState !== 'idle' && <p className={`copy-feedback ${copyState}`} role="status">{copyState === 'copied' ? '클립보드에 복사했습니다.' : '복사하지 못했습니다. 비밀번호를 직접 선택해 주세요.'}</p>}<div><button onClick={() => void navigator.clipboard.writeText(temporaryPassword).then(() => setCopyState('copied')).catch(() => setCopyState('failed'))}>{copyState === 'copied' ? '복사됨' : '복사'}</button><button className="primary" onClick={() => { setTemporaryPassword(''); setCopyState('idle') }}>확인</button></div></div></div>}
     {dialog}
   </main>
 }

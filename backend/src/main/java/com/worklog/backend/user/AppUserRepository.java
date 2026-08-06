@@ -10,6 +10,6 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     Optional<AppUser> findByUsername(String username);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select user from AppUser user where user.username = :username")
+    @Query("select user from AppUser user where lower(user.username) = lower(:username)")
     Optional<AppUser> findByUsernameForLogin(String username);
 }

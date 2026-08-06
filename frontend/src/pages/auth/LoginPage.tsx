@@ -14,6 +14,8 @@ export function LoginPage() {
   const [lockedUntil, setLockedUntil] = useState('')
   const [lockedUsername, setLockedUsername] = useState('')
   const [remainingSeconds, setRemainingSeconds] = useState(0)
+  const [failedAttempts, setFailedAttempts] = useState<number | null>(null)
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null)
   const accountLocked = remainingSeconds > 0 && username.trim().toLowerCase() === lockedUsername
 
   useEffect(() => {
@@ -33,6 +35,8 @@ export function LoginPage() {
     event.preventDefault()
     setSubmitting(true)
     setError('')
+    setFailedAttempts(null)
+    setRemainingAttempts(null)
     try {
       await login(username.trim(), password)
       const from = (location.state as { from?: string } | null)?.from
@@ -41,6 +45,10 @@ export function LoginPage() {
       if (reason instanceof LoginError && reason.lockedUntil) {
         setLockedUntil(reason.lockedUntil)
         setLockedUsername(username.trim().toLowerCase())
+      }
+      if (reason instanceof LoginError) {
+        setFailedAttempts(reason.failedAttempts ?? null)
+        setRemainingAttempts(reason.remainingAttempts ?? null)
       }
       setError(reason instanceof Error ? reason.message : '로그인하지 못했습니다.')
     } finally {
@@ -57,7 +65,7 @@ export function LoginPage() {
         <label><span>비밀번호</span><input type="password" autoComplete="current-password" maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="비밀번호 입력" /></label>
         {error && <div className="login-error" role="alert">{accountLocked
           ? <>로그인 실패가 10회 누적되어 계정이 잠겼습니다.<strong>{String(Math.floor(remainingSeconds / 60)).padStart(2, '0')}:{String(remainingSeconds % 60).padStart(2, '0')} 후 다시 시도할 수 있습니다.</strong></>
-          : error}</div>}
+          : <>{error}{failedAttempts !== null && remainingAttempts !== null && <strong>로그인 실패 {failedAttempts}/10 · {remainingAttempts}회 남음</strong>}</>}</div>}
         <button disabled={submitting || accountLocked || !username.trim() || !password} type="submit">{submitting ? '로그인 중...' : accountLocked ? '잠금 해제 대기 중' : '로그인'}</button>
       </form>
       <p className="login-help">회원가입은 제공하지 않습니다. 계정이 필요하면 관리자에게 문의하세요.</p>

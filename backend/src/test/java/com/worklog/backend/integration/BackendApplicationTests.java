@@ -115,7 +115,7 @@ class BackendApplicationTests {
 		String temporaryPassword = JsonPath.read(created, "$.temporaryPassword");
 		Integer userId = JsonPath.read(created, "$.user.id");
 
-		MockHttpSession userSession = login("isolated-user", temporaryPassword);
+		MockHttpSession userSession = login("ISOLATED-USER", temporaryPassword);
 		mockMvc.perform(get("/api/items").session(userSession).param("date", "2030-01-01"))
 				.andExpect(status().is(428));
 		mockMvc.perform(post("/api/auth/change-password").session(userSession)

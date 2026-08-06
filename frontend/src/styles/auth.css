@@ -63,6 +63,8 @@
 .temporary-password-modal h2 { margin: 10px 0 20px; font-size: 19px; }
 .temporary-password-modal code { display: block; padding: 16px; border-radius: 7px; color: #292821; background: #f1f1ef; font-size: 18px; font-weight: 700; text-align: center; letter-spacing: .06em; }
 .temporary-password-modal p { color: #85847e; font-size: 10px; line-height: 1.6; }
+.temporary-password-modal .copy-feedback { margin: 10px 0 0; color: #397151; font-weight: 600; text-align: center; }
+.temporary-password-modal .copy-feedback.failed { color: #9b3e34; }
 .temporary-password-modal > div > div { display: flex; justify-content: flex-end; gap: 7px; }
 .temporary-password-modal button { padding: 8px 12px; border: 1px solid #d9d9d4; border-radius: 6px; background: #fff; }
 .temporary-password-modal button.primary { border-color: #37352f; color: #fff; background: #37352f; }

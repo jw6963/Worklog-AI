@@ -47,6 +47,11 @@ public class AuthController {
         String username = body.username().trim();
         AppUser user = users.findByUsernameForLogin(username).orElse(null);
         Instant now = Instant.now();
+        if (user != null && !user.isEnabled()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new LoginFailure(
+                    "비활성화된 계정입니다. 관리자에게 문의해 주세요.",
+                    null, null, null));
+        }
         if (user != null && user.isLoginLocked(now)) {
             return ResponseEntity.status(HttpStatus.LOCKED).body(LoginFailure.locked(user.getFailedLoginAttempts(), user.getLoginLockedUntil()));
         }
@@ -57,10 +62,11 @@ public class AuthController {
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
-                    UsernamePasswordAuthenticationToken.unauthenticated(username, body.password()));
+                    UsernamePasswordAuthenticationToken.unauthenticated(
+                            user == null ? username : user.getUsername(), body.password()));
         } catch (AuthenticationException exception) {
             if (user == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginFailure("아이디 또는 비밀번호를 확인해 주세요.", 1, MAX_LOGIN_ATTEMPTS - 1, null));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginFailure("아이디 또는 비밀번호를 확인해 주세요.", null, null, null));
             }
             user.recordLoginFailure(MAX_LOGIN_ATTEMPTS, now.plus(LOCK_MINUTES, ChronoUnit.MINUTES));
             users.save(user);
@@ -69,7 +75,7 @@ public class AuthController {
             }
             int remaining = MAX_LOGIN_ATTEMPTS - user.getFailedLoginAttempts();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginFailure(
-                    "로그인에 실패했습니다. " + user.getFailedLoginAttempts() + "/" + MAX_LOGIN_ATTEMPTS + "회, " + remaining + "회 남았습니다.",
+                    "아이디 또는 비밀번호를 확인해 주세요.",
                     user.getFailedLoginAttempts(), remaining, null));
         }
         if (user != null) {
@@ -127,7 +133,7 @@ public class AuthController {
                                @NotBlank @Size(max = 128) String password) {}
     public record ChangePasswordRequest(@Size(max = 128) String currentPassword,
                                         @NotBlank @Size(min = 10, max = 128) String newPassword) {}
-    public record LoginFailure(String message, int failedAttempts, int remainingAttempts, Instant lockedUntil) {
+    public record LoginFailure(String message, Integer failedAttempts, Integer remainingAttempts, Instant lockedUntil) {
         static LoginFailure locked(int failedAttempts, Instant lockedUntil) {
             long minutes = Math.max(1, ChronoUnit.MINUTES.between(Instant.now(), lockedUntil) + 1);
             return new LoginFailure("로그인 실패가 10회 누적되어 " + minutes + "분 동안 잠겼습니다.",
