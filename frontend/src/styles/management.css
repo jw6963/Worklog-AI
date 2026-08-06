@@ -47,6 +47,30 @@
 .settings-page .profile-settings-form, .settings-page .password-settings-form { width: 100%; max-width: none; }
 .settings-page .password-settings-form { margin-top: auto; }
 .settings-page .settings-info { margin-top: 8px; }
+.settings-page > .settings-group { grid-column: 1 / -1; overflow: hidden; border: 1px solid #e2e2de; border-radius: 12px; background: #fff; box-shadow: 0 3px 14px #25251f09; }
+.settings-group > .settings-card { display: grid; min-height: 0; padding: 24px; border: 0; border-radius: 0; box-shadow: none; grid-template-columns: minmax(220px, .72fr) minmax(360px, 1.28fr); align-items: start; gap: 32px; }
+.settings-group > .settings-card + .settings-card { margin: 0; border-top: 1px solid #ecece8; }
+.settings-group > .settings-card > div:first-child { min-height: 0; }
+.settings-group .settings-card h2 { margin-bottom: 5px; font-size: 15px; }
+.settings-group .settings-card p { font-size: 11px; }
+.settings-group .profile-settings-form { width: 100%; max-width: none; }
+.settings-group .profile-avatar-preview { width: 64px; height: 64px; border-radius: 14px; }
+.settings-group .profile-actions { justify-content: flex-end; }
+.settings-group .password-settings-card { position: relative; margin: 0; align-items: center; }
+.settings-group .password-settings-card.expanded { align-items: start; }
+.settings-row-action { justify-self: end; padding: 8px 13px; border: 1px solid #d9d9d5; border-radius: 7px; color: #565550; background: #fff; font-size: 11px; font-weight: 600; }
+.settings-row-action:hover { border-color: #bdbdb7; background: #f7f7f5; }
+.settings-group .password-settings-form { display: grid; width: 100%; max-width: none; margin: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.password-settings-form label { display: grid; gap: 5px; }
+.password-settings-form label span { color: #65645f; font-size: 10px; font-weight: 600; }
+.password-settings-form .current-password-field, .password-settings-form .password-settings-message, .password-settings-form .password-form-actions { grid-column: 1 / -1; }
+.password-form-actions { display: flex; justify-content: flex-end; gap: 7px; margin-top: 2px; }
+.password-form-actions button { min-width: 72px; padding: 8px 12px; border: 1px solid #d9d9d5; border-radius: 7px; color: #65645f; background: #fff; font-size: 11px; font-weight: 600; }
+.password-form-actions button.primary { border-color: #37352f; color: #fff; background: #37352f; }
+.password-form-actions button:disabled { opacity: .45; }
+.data-settings-group > .settings-card { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.data-settings-group > .settings-card > button { min-width: 112px; }
+.data-settings-group .restore-preview { grid-column: 1 / -1; }
 .project-create { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 12px; padding: 16px; border: 1px solid #e7e7e4; border-radius: 9px; background: #fff; }
 .project-create > input { padding: 10px 11px; border: 1px solid #dfdfdc; border-radius: 6px; outline: none; }
 .project-create > button { padding: 10px 12px; border: 0; border-radius: 6px; color: #fff; background: #37352f; font-size: 11px; font-weight: 600; }

@@ -56,6 +56,10 @@
   .settings-card { grid-template-columns: 1fr; }
   .settings-page { grid-template-columns: 1fr; }
   .settings-page > .settings-card > div:first-child { min-height: 0; }
+  .settings-group > .settings-card, .data-settings-group > .settings-card { grid-template-columns: 1fr; gap: 16px; }
+  .settings-group .password-settings-form { grid-template-columns: 1fr; }
+  .password-settings-form label, .password-settings-form .current-password-field { grid-column: 1; }
+  .settings-row-action { justify-self: start; }
   .profile-settings-form { width: 100%; }
   .settings-action { width: 100%; }
   .restore-preview { align-items: stretch; flex-direction: column; }
