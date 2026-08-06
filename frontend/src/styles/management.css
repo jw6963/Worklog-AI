@@ -54,6 +54,8 @@
 .settings-group .settings-card h2 { margin-bottom: 5px; font-size: 15px; }
 .settings-group .settings-card p { font-size: 11px; }
 .settings-group .profile-settings-form { width: 100%; max-width: none; }
+.profile-settings-intro { display: flex; align-items: center; gap: 15px; }
+.profile-settings-intro > div:last-child { min-width: 0; }
 .settings-group .profile-avatar-preview { width: 64px; height: 64px; border-radius: 14px; }
 .settings-group .profile-actions { justify-content: flex-end; }
 .settings-group .password-settings-card { position: relative; margin: 0; align-items: center; }

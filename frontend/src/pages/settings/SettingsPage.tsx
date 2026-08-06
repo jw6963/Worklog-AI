@@ -105,11 +105,13 @@ export function SettingsPage() {
     <div className="settings-section-title"><span>ACCOUNT</span><div><h2>계정 설정</h2><p>내 정보와 로그인 보안을 관리합니다.</p></div></div>
     <section className="settings-group account-settings-group">
     <article className="settings-card profile-settings-card">
-      <div><h2>내 프로필</h2><p>사이드바에 표시되는 이름과 프로필 이미지를 변경합니다. JPEG, PNG, WebP 형식을 2MB까지 사용할 수 있습니다.</p></div>
-      <form className="profile-settings-form" onSubmit={(event) => void submitProfile(event)}>
+      <div className="profile-settings-intro">
         <div className="profile-avatar-preview">{user?.hasAvatar
           ? <img src={`/api/auth/avatar?v=${user.avatarVersion}`} alt="현재 프로필" />
           : <span>{user?.displayName.slice(0, 1) ?? 'W'}</span>}</div>
+        <div><h2>내 프로필</h2><p>사이드바에 표시되는 이름과 프로필 이미지를 변경합니다. JPEG, PNG, WebP 형식을 2MB까지 사용할 수 있습니다.</p></div>
+      </div>
+      <form className="profile-settings-form" onSubmit={(event) => void submitProfile(event)}>
         <div className="profile-fields">
           <label><span>표시 이름</span><input required maxLength={80} value={displayName} onChange={(event) => setDisplayName(event.target.value)} /></label>
           <div className="profile-actions">
