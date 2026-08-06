@@ -7,6 +7,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -127,6 +128,23 @@ class BackendApplicationTests {
 				.contentType("application/json")
 				.content("{\"workDate\":\"2030-01-01\",\"type\":\"TODO\",\"content\":\"private item\"}"))
 				.andExpect(status().isCreated());
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/auth/profile")
+				.session(userSession).contentType("application/json").content("{\"displayName\":\"Updated User\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.displayName").value("Updated User"));
+		MockMultipartFile avatar = new MockMultipartFile("file", "avatar.png", "image/png",
+				new byte[] {(byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a});
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/api/auth/avatar")
+				.file(avatar).session(userSession))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.hasAvatar").value(true));
+		mockMvc.perform(get("/api/auth/avatar").session(userSession))
+				.andExpect(status().isOk())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().contentType("image/png"));
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/auth/avatar")
+				.session(userSession))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.hasAvatar").value(false));
 		mockMvc.perform(post("/api/auth/change-password").session(userSession)
 				.contentType("application/json")
 				.content("{\"currentPassword\":\"wrong-password\",\"newPassword\":\"another-password-2030\"}"))

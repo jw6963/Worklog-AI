@@ -54,6 +54,7 @@
   .review-nav { flex-wrap: wrap; }
   .review-nav strong { min-width: 190px; }
   .settings-card { grid-template-columns: 1fr; }
+  .profile-settings-form { width: 100%; }
   .settings-action { width: 100%; }
   .restore-preview { align-items: stretch; flex-direction: column; }
   .project-create { grid-template-columns: 1fr; }

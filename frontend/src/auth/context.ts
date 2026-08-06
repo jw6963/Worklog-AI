@@ -1,6 +1,6 @@
 import { createContext } from 'react'
 
-export type AuthUser = { username: string; displayName: string; role: 'ADMIN' | 'USER'; mustChangePassword: boolean }
+export type AuthUser = { username: string; displayName: string; role: 'ADMIN' | 'USER'; mustChangePassword: boolean; hasAvatar: boolean; avatarVersion: number }
 
 export class LoginError extends Error {
   lockedUntil?: string
@@ -22,6 +22,9 @@ export type AuthValue = {
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   changePassword: (newPassword: string, currentPassword?: string) => Promise<boolean>
+  updateProfile: (displayName: string) => Promise<void>
+  uploadAvatar: (file: File) => Promise<void>
+  removeAvatar: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthValue | null>(null)

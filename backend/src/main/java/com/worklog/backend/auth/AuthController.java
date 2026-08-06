@@ -20,6 +20,10 @@ import com.worklog.backend.user.AppUserRepository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
+import org.springframework.http.CacheControl;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -96,6 +100,45 @@ public class AuthController {
         return currentUser(authentication);
     }
 
+    @PatchMapping("/profile")
+    public UserResponse updateProfile(@Valid @RequestBody ProfileRequest body, Authentication authentication) {
+        AppUser user = users.findByUsername(authentication.getName()).orElseThrow();
+        user.setDisplayName(body.displayName());
+        return userResponse(users.save(user));
+    }
+
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public UserResponse uploadAvatar(@RequestPart("file") MultipartFile file, Authentication authentication) throws IOException {
+        if (file.isEmpty() || file.getSize() > 2 * 1024 * 1024) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST, "Image must not exceed 2 MB");
+        }
+        byte[] data = file.getBytes();
+        String contentType = detectedImageType(data);
+        if (contentType == null) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPEG, PNG and WebP images are supported");
+        }
+        AppUser user = users.findByUsername(authentication.getName()).orElseThrow();
+        user.setAvatar(data, contentType);
+        return userResponse(users.save(user));
+    }
+
+    @GetMapping("/avatar")
+    public ResponseEntity<byte[]> avatar(Authentication authentication) {
+        AppUser user = users.findByUsername(authentication.getName()).orElseThrow();
+        if (user.getAvatarData() == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(user.getAvatarContentType()))
+                .cacheControl(CacheControl.noCache())
+                .body(user.getAvatarData());
+    }
+
+    @DeleteMapping("/avatar")
+    public UserResponse removeAvatar(Authentication authentication) {
+        AppUser user = users.findByUsername(authentication.getName()).orElseThrow();
+        user.removeAvatar();
+        return userResponse(users.save(user));
+    }
+
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(HttpServletRequest request) {
@@ -128,7 +171,20 @@ public class AuthController {
 
     private UserResponse currentUser(Authentication authentication) {
         AppUser user = users.findByUsername(authentication.getName()).orElseThrow();
-        return new UserResponse(user.getUsername(), user.getDisplayName(), user.getRole(), user.isMustChangePassword());
+        return userResponse(user);
+    }
+
+    private UserResponse userResponse(AppUser user) {
+        return new UserResponse(user.getUsername(), user.getDisplayName(), user.getRole(), user.isMustChangePassword(),
+                user.getAvatarData() != null, user.getAvatarVersion());
+    }
+
+    private String detectedImageType(byte[] data) {
+        if (data.length >= 3 && (data[0] & 0xff) == 0xff && (data[1] & 0xff) == 0xd8 && (data[2] & 0xff) == 0xff) return "image/jpeg";
+        if (data.length >= 8 && (data[0] & 0xff) == 0x89 && data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47) return "image/png";
+        if (data.length >= 12 && data[0] == 'R' && data[1] == 'I' && data[2] == 'F' && data[3] == 'F'
+                && data[8] == 'W' && data[9] == 'E' && data[10] == 'B' && data[11] == 'P') return "image/webp";
+        return null;
     }
 
     public record LoginRequest(@NotBlank @Size(max = 40) String username,
@@ -143,5 +199,7 @@ public class AuthController {
                     failedAttempts, 0, lockedUntil);
         }
     }
-    public record UserResponse(String username, String displayName, AppUser.Role role, boolean mustChangePassword) {}
+    public record ProfileRequest(@NotBlank @Size(max = 80) String displayName) {}
+    public record UserResponse(String username, String displayName, AppUser.Role role, boolean mustChangePassword,
+                               boolean hasAvatar, long avatarVersion) {}
 }

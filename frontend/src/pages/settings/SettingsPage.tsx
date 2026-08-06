@@ -6,8 +6,9 @@ import { useConfirmDialog } from '../../components/ui/ConfirmDialog'
 
 export function SettingsPage() {
   const { confirm, dialog } = useConfirmDialog()
-  const { changePassword } = useAuth()
+  const { user, changePassword, updateProfile, uploadAvatar, removeAvatar } = useAuth()
   const input = useRef<HTMLInputElement>(null)
+  const avatarInput = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<BackupData | null>(null)
   const [fileName, setFileName] = useState('')
   const [message, setMessage] = useState('')
@@ -17,6 +18,36 @@ export function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordMessage, setPasswordMessage] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
+  const [displayName, setDisplayName] = useState(user?.displayName ?? '')
+  const [profileMessage, setProfileMessage] = useState('')
+  const [savingProfile, setSavingProfile] = useState(false)
+
+  async function submitProfile(event: FormEvent) {
+    event.preventDefault()
+    setSavingProfile(true); setProfileMessage('')
+    try {
+      await updateProfile(displayName.trim())
+      setProfileMessage('프로필을 저장했습니다.')
+    } catch (error) { setProfileMessage(error instanceof Error ? error.message : '프로필을 저장하지 못했습니다.') }
+    finally { setSavingProfile(false) }
+  }
+
+  async function selectAvatar(file: File) {
+    setSavingProfile(true); setProfileMessage('')
+    try {
+      if (file.size > 2 * 1024 * 1024) throw new Error('이미지는 2MB 이하여야 합니다.')
+      await uploadAvatar(file)
+      setProfileMessage('프로필 이미지를 변경했습니다.')
+    } catch (error) { setProfileMessage(error instanceof Error ? error.message : '프로필 이미지를 변경하지 못했습니다.') }
+    finally { setSavingProfile(false) }
+  }
+
+  async function deleteAvatar() {
+    setSavingProfile(true); setProfileMessage('')
+    try { await removeAvatar(); setProfileMessage('기본 프로필로 변경했습니다.') }
+    catch (error) { setProfileMessage(error instanceof Error ? error.message : '프로필 이미지를 삭제하지 못했습니다.') }
+    finally { setSavingProfile(false) }
+  }
 
   async function submitPassword(event: FormEvent) {
     event.preventDefault()
@@ -69,6 +100,24 @@ export function SettingsPage() {
 
   return <main className="page settings-page">
     <div className="page-heading"><div><span className="page-kicker">SETTINGS</span><h1>설정</h1><p>기록을 백업하고 새 환경에서 복원할 수 있습니다.</p></div></div>
+    <section className="settings-card profile-settings-card">
+      <div><h2>내 프로필</h2><p>사이드바에 표시되는 이름과 프로필 이미지를 변경합니다. JPEG, PNG, WebP 형식을 2MB까지 사용할 수 있습니다.</p></div>
+      <form className="profile-settings-form" onSubmit={(event) => void submitProfile(event)}>
+        <div className="profile-avatar-preview">{user?.hasAvatar
+          ? <img src={`/api/auth/avatar?v=${user.avatarVersion}`} alt="현재 프로필" />
+          : <span>{user?.displayName.slice(0, 1) ?? 'W'}</span>}</div>
+        <div className="profile-fields">
+          <label><span>표시 이름</span><input required maxLength={80} value={displayName} onChange={(event) => setDisplayName(event.target.value)} /></label>
+          <div className="profile-actions">
+            <input ref={avatarInput} className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void selectAvatar(file) }} />
+            <button type="button" disabled={savingProfile} onClick={() => avatarInput.current?.click()}>이미지 변경</button>
+            {user?.hasAvatar && <button type="button" disabled={savingProfile} onClick={() => void deleteAvatar()}>이미지 삭제</button>}
+            <button className="settings-action" disabled={savingProfile || !displayName.trim()}>이름 저장</button>
+          </div>
+          {profileMessage && <p className="password-settings-message" role="status">{profileMessage}</p>}
+        </div>
+      </form>
+    </section>
     <section className="settings-card password-settings-card">
       <div><h2>내 비밀번호 변경</h2><p>현재 비밀번호를 확인한 뒤 10자 이상의 새 비밀번호로 변경합니다.</p></div>
       <form className="password-settings-form" onSubmit={(event) => void submitPassword(event)}>

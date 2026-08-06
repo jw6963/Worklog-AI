@@ -43,6 +43,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser((current) => current ? { ...current, mustChangePassword: false } : current)
       return result.showGuide
     },
+    updateProfile: async (displayName) => {
+      const response = await fetch(`${AUTH_API}/profile`, {
+        method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ displayName }),
+      })
+      if (!response.ok) throw new Error('표시 이름을 변경하지 못했습니다.')
+      setUser(await response.json())
+    },
+    uploadAvatar: async (file) => {
+      const form = new FormData()
+      form.append('file', file)
+      const response = await fetch(`${AUTH_API}/avatar`, { method: 'POST', credentials: 'include', body: form })
+      if (!response.ok) throw new Error('JPEG, PNG 또는 WebP 이미지를 2MB 이하로 선택해 주세요.')
+      setUser(await response.json())
+    },
+    removeAvatar: async () => {
+      const response = await fetch(`${AUTH_API}/avatar`, { method: 'DELETE', credentials: 'include' })
+      if (!response.ok) throw new Error('프로필 이미지를 삭제하지 못했습니다.')
+      setUser(await response.json())
+    },
   }), [loading, user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

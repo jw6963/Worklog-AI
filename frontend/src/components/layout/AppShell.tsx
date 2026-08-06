@@ -43,7 +43,9 @@ export function AppShell() {
       </nav>
       <div className="sidebar-bottom">
         <div className="sidebar-user">
-          <div className="avatar">{user?.displayName.slice(0, 1) ?? 'W'}</div>
+          <div className="avatar">{user?.hasAvatar
+            ? <img src={`/api/auth/avatar?v=${user.avatarVersion}`} alt="" />
+            : user?.displayName.slice(0, 1) ?? 'W'}</div>
           <div><strong>{user?.displayName}</strong><span>{user?.username}</span></div>
         </div>
         <button className="logout-button" type="button" onClick={handleLogout}>로그아웃</button>

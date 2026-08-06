@@ -26,6 +26,12 @@ public class AppUser {
     @Column(nullable = false, columnDefinition = "integer default 0")
     private int failedLoginAttempts = 0;
     private Instant loginLockedUntil;
+    @Column(length = 2097152)
+    private byte[] avatarData;
+    @Column(length = 20)
+    private String avatarContentType;
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private long avatarVersion = 0;
 
     protected AppUser() {}
 
@@ -54,6 +60,9 @@ public class AppUser {
     public boolean isOnboardingCompleted() { return onboardingCompleted; }
     public int getFailedLoginAttempts() { return failedLoginAttempts; }
     public Instant getLoginLockedUntil() { return loginLockedUntil; }
+    public byte[] getAvatarData() { return avatarData; }
+    public String getAvatarContentType() { return avatarContentType; }
+    public long getAvatarVersion() { return avatarVersion; }
     public void setDisplayName(String displayName) { this.displayName = displayName.trim(); }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public void setRole(Role role) { this.role = role; }
@@ -75,6 +84,16 @@ public class AppUser {
         loginLockedUntil = null;
     }
     public void completeOnboarding() { onboardingCompleted = true; }
+    public void setAvatar(byte[] data, String contentType) {
+        avatarData = data;
+        avatarContentType = contentType;
+        avatarVersion++;
+    }
+    public void removeAvatar() {
+        avatarData = null;
+        avatarContentType = null;
+        avatarVersion++;
+    }
 
     public enum Role { ADMIN, USER }
 }
