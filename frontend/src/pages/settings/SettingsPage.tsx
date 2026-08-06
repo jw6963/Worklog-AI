@@ -106,9 +106,9 @@ export function SettingsPage() {
     <section className="settings-group account-settings-group">
     <article className="settings-card profile-settings-card">
       <div className="profile-settings-intro">
-        <div className="profile-avatar-preview">{user?.hasAvatar
+        <button className="profile-avatar-preview" type="button" disabled={savingProfile} aria-label="프로필 이미지 변경" onClick={() => avatarInput.current?.click()}>{user?.hasAvatar
           ? <img src={`/api/auth/avatar?v=${user.avatarVersion}`} alt="현재 프로필" />
-          : <span>{user?.displayName.slice(0, 1) ?? 'W'}</span>}</div>
+          : <span>{user?.displayName.slice(0, 1) ?? 'W'}</span>}<i>변경</i></button>
         <div><h2>내 프로필</h2><p>사이드바에 표시되는 이름과 프로필 이미지를 변경합니다. JPEG, PNG, WebP 형식을 2MB까지 사용할 수 있습니다.</p></div>
       </div>
       <form className="profile-settings-form" onSubmit={(event) => void submitProfile(event)}>
@@ -116,9 +116,8 @@ export function SettingsPage() {
           <label><span>표시 이름</span><input required maxLength={80} value={displayName} onChange={(event) => setDisplayName(event.target.value)} /></label>
           <div className="profile-actions">
             <input ref={avatarInput} className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void selectAvatar(file) }} />
-            <button type="button" disabled={savingProfile} onClick={() => avatarInput.current?.click()}>이미지 변경</button>
             {user?.hasAvatar && <button type="button" disabled={savingProfile} onClick={() => void deleteAvatar()}>이미지 삭제</button>}
-            <button className="settings-action" disabled={savingProfile || !displayName.trim()}>이름 저장</button>
+            <button className="settings-action" disabled={savingProfile || !displayName.trim()}>저장</button>
           </div>
           {profileMessage && <p className="password-settings-message" role="status">{profileMessage}</p>}
         </div>

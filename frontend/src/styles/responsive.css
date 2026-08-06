@@ -58,6 +58,8 @@
   .settings-page > .settings-card > div:first-child { min-height: 0; }
   .settings-group > .settings-card, .data-settings-group > .settings-card { grid-template-columns: 1fr; gap: 16px; }
   .settings-group .password-settings-form { grid-template-columns: 1fr; }
+  .settings-group .profile-fields { grid-template-columns: 1fr; }
+  .settings-group .profile-actions { justify-content: flex-start; }
   .password-settings-form label, .password-settings-form .current-password-field { grid-column: 1; }
   .settings-row-action { justify-self: start; }
   .profile-settings-form { width: 100%; }
