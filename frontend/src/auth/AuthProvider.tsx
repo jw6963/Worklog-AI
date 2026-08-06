@@ -39,7 +39,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ currentPassword, newPassword }),
       })
       if (!response.ok) throw new Error('10자 이상의 새 비밀번호를 입력하고 기존 비밀번호와 다르게 설정해 주세요.')
+      const result = await response.json() as { showGuide: boolean }
       setUser((current) => current ? { ...current, mustChangePassword: false } : current)
+      return result.showGuide
     },
   }), [loading, user])
 

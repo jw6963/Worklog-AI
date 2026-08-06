@@ -105,10 +105,10 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changePassword(@Valid @RequestBody ChangePasswordRequest body, Authentication authentication,
-                               HttpServletRequest request) {
+    public ChangePasswordResponse changePassword(@Valid @RequestBody ChangePasswordRequest body, Authentication authentication,
+                                                 HttpServletRequest request) {
         AppUser user = users.findByUsername(authentication.getName()).orElseThrow();
+        boolean showGuide = !user.isOnboardingCompleted();
         if (!user.isMustChangePassword()
                 && (body.currentPassword() == null || !passwordEncoder.matches(body.currentPassword(), user.getPasswordHash()))) {
             throw new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password is incorrect");
@@ -120,8 +120,10 @@ public class AuthController {
             throw new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST, "New password must be different");
         }
         user.setPassword(passwordEncoder.encode(body.newPassword()), false);
+        user.completeOnboarding();
         users.save(user);
         request.changeSessionId();
+        return new ChangePasswordResponse(showGuide);
     }
 
     private UserResponse currentUser(Authentication authentication) {
@@ -133,6 +135,7 @@ public class AuthController {
                                @NotBlank @Size(max = 128) String password) {}
     public record ChangePasswordRequest(@Size(max = 128) String currentPassword,
                                         @NotBlank @Size(min = 10, max = 128) String newPassword) {}
+    public record ChangePasswordResponse(boolean showGuide) {}
     public record LoginFailure(String message, Integer failedAttempts, Integer remainingAttempts, Instant lockedUntil) {
         static LoginFailure locked(int failedAttempts, Instant lockedUntil) {
             long minutes = Math.max(1, ChronoUnit.MINUTES.between(Instant.now(), lockedUntil) + 1);

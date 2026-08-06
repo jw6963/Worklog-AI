@@ -121,7 +121,8 @@ class BackendApplicationTests {
 		mockMvc.perform(post("/api/auth/change-password").session(userSession)
 				.contentType("application/json")
 				.content("{\"newPassword\":\"changed-password-2030\"}"))
-				.andExpect(status().isNoContent());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.showGuide").value(true));
 		mockMvc.perform(post("/api/items").session(userSession)
 				.contentType("application/json")
 				.content("{\"workDate\":\"2030-01-01\",\"type\":\"TODO\",\"content\":\"private item\"}"))
@@ -133,7 +134,19 @@ class BackendApplicationTests {
 		mockMvc.perform(post("/api/auth/change-password").session(userSession)
 				.contentType("application/json")
 				.content("{\"currentPassword\":\"changed-password-2030\",\"newPassword\":\"another-password-2030\"}"))
-				.andExpect(status().isNoContent());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.showGuide").value(false));
+
+		String reset = mockMvc.perform(post("/api/admin/users/{id}/reset-password", userId).session(adminSession))
+				.andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString();
+		String resetPassword = JsonPath.read(reset, "$.temporaryPassword");
+		MockHttpSession resetSession = login("isolated-user", resetPassword);
+		mockMvc.perform(post("/api/auth/change-password").session(resetSession)
+				.contentType("application/json")
+				.content("{\"newPassword\":\"password-after-admin-reset\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.showGuide").value(false));
 
 		mockMvc.perform(get("/api/items").session(adminSession).param("date", "2030-01-01"))
 				.andExpect(status().isOk())

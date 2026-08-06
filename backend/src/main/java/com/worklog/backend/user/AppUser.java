@@ -21,6 +21,8 @@ public class AppUser {
     private Role role = Role.USER;
     private Boolean mustChangePassword = true;
     private LocalDateTime passwordChangedAt;
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean onboardingCompleted = true;
     @Column(nullable = false, columnDefinition = "integer default 0")
     private int failedLoginAttempts = 0;
     private Instant loginLockedUntil;
@@ -29,6 +31,7 @@ public class AppUser {
 
     public AppUser(String username, String passwordHash, String displayName) {
         this(username, passwordHash, displayName, Role.USER, true);
+        this.onboardingCompleted = false;
     }
 
     public AppUser(String username, String passwordHash, String displayName, Role role, boolean mustChangePassword) {
@@ -37,6 +40,7 @@ public class AppUser {
         this.displayName = displayName;
         this.role = role;
         this.mustChangePassword = mustChangePassword;
+        this.onboardingCompleted = role == Role.ADMIN || !mustChangePassword;
     }
 
     public Long getId() { return id; }
@@ -47,6 +51,7 @@ public class AppUser {
     public Role getRole() { return role == null ? Role.USER : role; }
     public boolean isMustChangePassword() { return Boolean.TRUE.equals(mustChangePassword); }
     public LocalDateTime getPasswordChangedAt() { return passwordChangedAt; }
+    public boolean isOnboardingCompleted() { return onboardingCompleted; }
     public int getFailedLoginAttempts() { return failedLoginAttempts; }
     public Instant getLoginLockedUntil() { return loginLockedUntil; }
     public void setDisplayName(String displayName) { this.displayName = displayName.trim(); }
@@ -69,6 +74,7 @@ public class AppUser {
         failedLoginAttempts = 0;
         loginLockedUntil = null;
     }
+    public void completeOnboarding() { onboardingCompleted = true; }
 
     public enum Role { ADMIN, USER }
 }

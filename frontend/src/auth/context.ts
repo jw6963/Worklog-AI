@@ -21,7 +21,7 @@ export type AuthValue = {
   loading: boolean
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
-  changePassword: (newPassword: string, currentPassword?: string) => Promise<void>
+  changePassword: (newPassword: string, currentPassword?: string) => Promise<boolean>
 }
 
 export const AuthContext = createContext<AuthValue | null>(null)

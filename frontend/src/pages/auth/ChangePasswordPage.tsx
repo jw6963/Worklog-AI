@@ -16,8 +16,8 @@ export function ChangePasswordPage() {
     if (newPassword.length < 10) return setError('새 비밀번호는 10자 이상이어야 합니다.')
     setSubmitting(true); setError('')
     try {
-      await changePassword(newPassword)
-      navigate('/guide', { replace: true })
+      const showGuide = await changePassword(newPassword)
+      navigate(showGuide ? '/guide' : '/app', { replace: true })
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '비밀번호를 변경하지 못했습니다.')
     } finally { setSubmitting(false) }
