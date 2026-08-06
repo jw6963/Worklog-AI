@@ -24,6 +24,7 @@ import com.worklog.backend.project.ProjectRepository;
 import com.worklog.backend.workitem.WorkItem;
 import com.worklog.backend.workitem.WorkItemController;
 import com.worklog.backend.workitem.WorkItemRepository;
+import com.worklog.backend.user.AppUserRepository;
 
 @SpringBootTest(properties = {
 		"spring.datasource.url=jdbc:h2:mem:worklog-test;DB_CLOSE_DELAY=-1",
@@ -36,6 +37,7 @@ class BackendApplicationTests {
 	@Autowired WorkItemRepository workItemRepository;
 	@Autowired ProjectRepository projectRepository;
 	@Autowired MockMvc mockMvc;
+	@Autowired AppUserRepository appUserRepository;
 	private final Authentication admin = new UsernamePasswordAuthenticationToken(
 			"admin", "", java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
 
@@ -43,6 +45,10 @@ class BackendApplicationTests {
 	void cleanDatabase() {
 		workItemRepository.deleteAll();
 		projectRepository.deleteAll();
+		appUserRepository.findByUsername("admin").ifPresent(user -> {
+			user.resetLoginFailures();
+			appUserRepository.save(user);
+		});
 	}
 
 	@Test
@@ -52,7 +58,11 @@ class BackendApplicationTests {
 	@Test
 	void protectsApiAndCreatesAuthenticatedSession() throws Exception {
 		mockMvc.perform(get("/api/items").param("date", "2026-08-03"))
-				.andExpect(status().isUnauthorized());
+				.andExpect(status().isUnauthorized())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+						.string("Content-Security-Policy", org.hamcrest.Matchers.containsString("default-src 'self'")))
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+						.string("Permissions-Policy", org.hamcrest.Matchers.containsString("camera=()")));
 
 		MockHttpSession session = (MockHttpSession) mockMvc.perform(post("/api/auth/login")
 					.contentType("application/json")
@@ -66,6 +76,31 @@ class BackendApplicationTests {
 				.andExpect(jsonPath("$.displayName").value("내 Worklog"));
 		mockMvc.perform(get("/api/items").param("date", "2026-08-03").session(session))
 				.andExpect(status().isOk());
+	}
+
+	@Test
+	void countsFailedLoginsAndLocksAccountAfterTenAttempts() throws Exception {
+		for (int attempt = 1; attempt <= 9; attempt++) {
+			mockMvc.perform(post("/api/auth/login")
+					.contentType("application/json")
+					.content("{\"username\":\"admin\",\"password\":\"wrong-password\"}"))
+					.andExpect(status().isUnauthorized())
+					.andExpect(jsonPath("$.failedAttempts").value(attempt))
+					.andExpect(jsonPath("$.remainingAttempts").value(10 - attempt));
+		}
+
+		mockMvc.perform(post("/api/auth/login")
+				.contentType("application/json")
+				.content("{\"username\":\"admin\",\"password\":\"wrong-password\"}"))
+				.andExpect(status().is(423))
+				.andExpect(jsonPath("$.failedAttempts").value(10))
+				.andExpect(jsonPath("$.remainingAttempts").value(0))
+				.andExpect(jsonPath("$.lockedUntil").isNotEmpty());
+
+		mockMvc.perform(post("/api/auth/login")
+				.contentType("application/json")
+				.content("{\"username\":\"admin\",\"password\":\"worklog1234\"}"))
+				.andExpect(status().is(423));
 	}
 
 	@Test

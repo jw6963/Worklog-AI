@@ -17,7 +17,7 @@ export function ChangePasswordPage() {
     setSubmitting(true); setError('')
     try {
       await changePassword(newPassword)
-      navigate('/app', { replace: true })
+      navigate('/guide', { replace: true })
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '비밀번호를 변경하지 못했습니다.')
     } finally { setSubmitting(false) }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { AuthContext, type AuthUser, type AuthValue } from './context'
+import { AuthContext, LoginError, type AuthUser, type AuthValue } from './context'
 
 const AUTH_API = '/api/auth'
 
@@ -22,7 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
-      if (!response.ok) throw new Error('아이디 또는 비밀번호를 확인해 주세요.')
+      if (!response.ok) {
+        const failure = await response.json().catch(() => null) as { message?: string; lockedUntil?: string } | null
+        throw new LoginError(failure?.message ?? '아이디 또는 비밀번호를 확인해 주세요.', failure?.lockedUntil)
+      }
       setUser(await response.json())
     },
     logout: async () => {
