@@ -36,7 +36,7 @@
 .type-badge { padding: 3px 5px; border-radius: 4px; color: #65645f; background: #ededeb; font-size: var(--text-xs); font-weight: 700; text-align: center; }
 .type-badge.done { color: #397151; background: #e8f2ea; }
 .type-badge.note { color: #84662f; background: #f5efdf; }
-.timeline-markdown { min-width: 0; overflow-wrap: anywhere; line-height: 1.55; font-size: 13px; }
+.timeline-markdown { min-width: 0; max-height: 12.4em; overflow: hidden; overflow-wrap: anywhere; line-height: 1.55; font-size: 13px; }
 .timeline-markdown > :first-child { margin-top: 0; }
 .timeline-markdown > :last-child { margin-bottom: 0; }
 .timeline-markdown h1, .timeline-markdown h2, .timeline-markdown h3 { font-size: 1em; }
