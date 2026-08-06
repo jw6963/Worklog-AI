@@ -35,6 +35,7 @@ export function LogsPage() {
   const [hasMore, setHasMore] = useState(false)
   const [nextBeforeDate, setNextBeforeDate] = useState<string | null>(null)
   const [totals, setTotals] = useState({ items: 0, days: 0 })
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(() => new Set())
   const requestId = useRef(0)
 
   const range = useMemo(() => {
@@ -128,11 +129,22 @@ export function LogsPage() {
     <div className="timeline">
       {dates.map((recordDate) => <section className="timeline-day" key={recordDate}>
         <Link className="timeline-date" to={`/logs/${recordDate}`}><strong>{formatKoreanDate(recordDate, { month: 'long', day: 'numeric' })}</strong><span>{formatKoreanDate(recordDate, { weekday: 'long' })}</span></Link>
-        <div className="timeline-items">{items.filter((item) => item.workDate === recordDate).map((item) => <Link className="timeline-item-card" to={`/logs/${recordDate}#item-${item.id}`} aria-label={`${recordDate} 일지에서 기록 보기`} key={item.id}>
-          <span className={`type-badge ${item.type.toLowerCase()}`}>{item.type}</span>
-          <div className="timeline-markdown">{item.project && <span className="project-chip" style={{ '--project-color': item.project.color } as CSSProperties}>{item.project.name}</span>}<ReactMarkdown>{item.content}</ReactMarkdown></div>
-          <span className="timeline-item-arrow" aria-hidden="true">→</span>
-        </Link>)}</div>
+        <div className="timeline-items">{items.filter((item) => item.workDate === recordDate).map((item) => {
+          const expanded = expandedItems.has(item.id)
+          const canExpand = item.content.length > 320 || item.content.split('\n').length > 8
+          return <article className="timeline-item-card" key={item.id}>
+            <Link className="timeline-item-link" to={`/logs/${recordDate}#item-${item.id}`} aria-label={`${recordDate} 일지에서 기록 보기`}>
+              <span className={`type-badge ${item.type.toLowerCase()}`}>{item.type}</span>
+              <div className={`timeline-markdown${expanded ? ' expanded' : ''}`}>{item.project && <span className="project-chip" style={{ '--project-color': item.project.color } as CSSProperties}>{item.project.name}</span>}<ReactMarkdown>{item.content}</ReactMarkdown></div>
+              <span className="timeline-item-arrow" aria-hidden="true">→</span>
+            </Link>
+            {canExpand && <button className="timeline-expand" type="button" aria-expanded={expanded} onClick={() => setExpandedItems((current) => {
+              const next = new Set(current)
+              if (next.has(item.id)) next.delete(item.id); else next.add(item.id)
+              return next
+            })}>{expanded ? '접기' : '내용 더보기'}</button>}
+          </article>
+        })}</div>
       </section>)}
       {!dates.length && !loading && <div className="empty-state"><strong>조건에 맞는 기록이 없습니다.</strong><span>검색어나 필터를 변경해 보세요.</span></div>}
     </div>
