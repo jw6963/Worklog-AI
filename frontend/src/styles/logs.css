@@ -28,8 +28,8 @@
 .timeline-date strong { font-size: 14px; }
 .timeline-date span { color: #9b9a97; font-size: 11px; }
 .timeline-date:hover strong { color: #397151; text-decoration: underline; text-underline-offset: 3px; }
-.timeline-items { display: grid; gap: 8px; }
-.timeline-item-card { display: grid; grid-template-columns: 54px minmax(0, 1fr) 20px; align-items: start; gap: 10px; padding: 14px; border: 1px solid #e7e7e4; border-radius: 8px; color: inherit; background: #fff; text-decoration: none; transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.timeline-items { display: grid; min-width: 0; gap: 8px; }
+.timeline-item-card { display: grid; min-width: 0; grid-template-columns: 54px minmax(0, 1fr) 20px; align-items: start; gap: 10px; padding: 14px; border: 1px solid #e7e7e4; border-radius: 8px; color: inherit; background: #fff; text-decoration: none; transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease, transform .15s ease; }
 .timeline-item-card:hover { border-color: #bfcfc4; background: #fbfdfb; box-shadow: 0 5px 16px #315f450d; transform: translateY(-1px); }
 .timeline-item-arrow { align-self: center; color: #b3b2ae; font-size: 14px; opacity: 0; transform: translateX(-4px); transition: opacity .15s ease, transform .15s ease; }
 .timeline-item-card:hover .timeline-item-arrow, .timeline-item-card:focus-visible .timeline-item-arrow { color: #4b8063; opacity: 1; transform: translateX(0); }
@@ -40,6 +40,8 @@
 .timeline-markdown > :first-child { margin-top: 0; }
 .timeline-markdown > :last-child { margin-bottom: 0; }
 .timeline-markdown h1, .timeline-markdown h2, .timeline-markdown h3 { font-size: 1em; }
+.timeline-markdown pre { width: 100%; max-width: 100%; overflow-x: auto; padding: 12px; border-radius: 6px; box-sizing: border-box; background: #e8e8e5; }
+.timeline-markdown pre code { padding: 0; background: none; }
 .empty-state { display: grid; gap: 5px; padding: 60px 20px; color: #787774; place-items: center; }
 .empty-state span { color: #aaa9a5; font-size: 12px; }
 .load-more { display: grid; justify-items: center; gap: 7px; padding: 6px 0 36px; }
