@@ -26,6 +26,8 @@ import com.worklog.backend.workitem.WorkItem;
 import com.worklog.backend.workitem.WorkItemController;
 import com.worklog.backend.workitem.WorkItemRepository;
 import com.worklog.backend.user.AppUserRepository;
+import com.worklog.backend.search.SavedSearchController;
+import com.worklog.backend.search.SavedSearchRepository;
 
 @SpringBootTest(properties = {
 		"spring.datasource.url=jdbc:h2:mem:worklog-test;DB_CLOSE_DELAY=-1",
@@ -39,11 +41,14 @@ class BackendApplicationTests {
 	@Autowired ProjectRepository projectRepository;
 	@Autowired MockMvc mockMvc;
 	@Autowired AppUserRepository appUserRepository;
+	@Autowired SavedSearchController savedSearchController;
+	@Autowired SavedSearchRepository savedSearchRepository;
 	private final Authentication admin = new UsernamePasswordAuthenticationToken(
 			"admin", "", java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
 
 	@BeforeEach
 	void cleanDatabase() {
+		savedSearchRepository.deleteAll();
 		workItemRepository.deleteAll();
 		projectRepository.deleteAll();
 		appUserRepository.findByUsername("admin").ifPresent(user -> {
@@ -54,6 +59,23 @@ class BackendApplicationTests {
 
 	@Test
 	void contextLoads() {
+	}
+
+	@Test
+	void savesAndDeletesAccountSearchFilters() {
+		SavedSearchController.Request request = new SavedSearchController.Request(
+				"Open project work", "14D", null, null, "TODO", null, "release");
+		var saved = savedSearchController.create(request, admin);
+
+		assertThat(savedSearchController.list(admin)).singleElement().satisfies(filter -> {
+			assertThat(filter.getName()).isEqualTo("Open project work");
+			assertThat(filter.getPeriod()).isEqualTo("14D");
+			assertThat(filter.getItemType()).isEqualTo("TODO");
+			assertThat(filter.getQuery()).isEqualTo("release");
+		});
+
+		savedSearchController.delete(saved.getId(), admin);
+		assertThat(savedSearchController.list(admin)).isEmpty();
 	}
 
 	@Test

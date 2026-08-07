@@ -34,3 +34,14 @@ export type ImportPreview = {
 }
 
 export type ImportMode = 'append' | 'replace'
+
+export type SavedSearch = {
+  id: number
+  name: string
+  period: '7D' | '14D' | '30D' | 'CUSTOM'
+  fromDate: string | null
+  toDate: string | null
+  itemType: ItemType | null
+  projectId: number | null
+  query: string
+}

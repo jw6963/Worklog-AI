@@ -8,10 +8,15 @@ import { addDays, formatKoreanDate, localDate } from '../../utils/date'
 import type { ItemType, Project, WorkItem } from '../../types'
 import { SelectMenu } from '../../components/ui/SelectMenu'
 import { LoadState } from '../../components/ui/LoadState'
+import { createSavedSearch, deleteSavedSearch, fetchSavedSearches } from '../../api/savedSearches'
+import type { SavedSearch } from '../../types'
+import { useAuth } from '../../auth/useAuth'
 
 type Period = '7D' | '14D' | '30D' | 'CUSTOM'
 
 export function LogsPage() {
+  const { user } = useAuth()
+  const recentSearchKey = `worklog.recent-searches.${user?.username ?? 'anonymous'}`
   const [searchParams, setSearchParams] = useSearchParams()
   const today = localDate()
   const [items, setItems] = useState<WorkItem[]>([])
@@ -36,6 +41,14 @@ export function LogsPage() {
   const [nextBeforeDate, setNextBeforeDate] = useState<string | null>(null)
   const [totals, setTotals] = useState({ items: 0, days: 0 })
   const [expandedItems, setExpandedItems] = useState<Set<number>>(() => new Set())
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([])
+  const [savingFilter, setSavingFilter] = useState(false)
+  const [filterName, setFilterName] = useState('')
+  const [filterMessage, setFilterMessage] = useState('')
+  const [recentQueries, setRecentQueries] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(recentSearchKey) ?? '[]') }
+    catch { return [] }
+  })
   const requestId = useRef(0)
 
   const range = useMemo(() => {
@@ -82,6 +95,35 @@ export function LogsPage() {
 
   useEffect(() => { void loadPage() }, [loadPage])
   useEffect(() => { fetchProjects().then(setProjects).catch(() => setProjects([])) }, [])
+  useEffect(() => { fetchSavedSearches().then(setSavedSearches).catch(() => setSavedSearches([])) }, [])
+
+  const rememberQuery = (value: string) => {
+    const normalized = value.trim()
+    if (!normalized) return
+    setRecentQueries((current) => {
+      const next = [normalized, ...current.filter((entry) => entry !== normalized)].slice(0, 5)
+      localStorage.setItem(recentSearchKey, JSON.stringify(next))
+      return next
+    })
+  }
+
+  const applySavedSearch = (saved: SavedSearch) => {
+    setPeriod(saved.period)
+    if (saved.period === 'CUSTOM' && saved.fromDate && saved.toDate) {
+      setCustomFrom(saved.fromDate); setCustomTo(saved.toDate); setAppliedCustomRange({ from: saved.fromDate, to: saved.toDate })
+    }
+    setType(saved.itemType ?? 'ALL'); setProjectId(saved.projectId ?? 'ALL'); setQuery(saved.query); setAppliedQuery(saved.query)
+  }
+
+  const saveCurrentFilter = async () => {
+    if (!filterName.trim()) return
+    try {
+      const saved = await createSavedSearch({ name: filterName.trim(), period, fromDate: period === 'CUSTOM' ? appliedCustomRange.from : null,
+        toDate: period === 'CUSTOM' ? appliedCustomRange.to : null, itemType: type === 'ALL' ? null : type,
+        projectId: projectId === 'ALL' ? null : projectId, query: appliedQuery })
+      setSavedSearches((current) => [...current, saved]); setFilterName(''); setSavingFilter(false); setFilterMessage('필터를 저장했습니다.')
+    } catch { setFilterMessage('필터를 저장하지 못했습니다.') }
+  }
 
   const dates = [...new Set(items.map((item) => item.workDate))]
 
@@ -107,7 +149,9 @@ export function LogsPage() {
       <p>{formatKoreanDate(range.from, { year: 'numeric', month: 'short', day: 'numeric' })} – {formatKoreanDate(range.to, { year: 'numeric', month: 'short', day: 'numeric' })}</p>
     </section>
     <div className="log-filters">
-      <input type="search" maxLength={200} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이 기간의 기록에서 검색…" />
+      <div className="log-search-box"><input type="search" maxLength={200} value={query} onChange={(event) => setQuery(event.target.value)} onBlur={() => rememberQuery(query)} onKeyDown={(event) => { if (event.key === 'Enter') rememberQuery(query) }} placeholder="이 기간의 기록에서 검색…" />
+        {recentQueries.length > 0 && <div className="recent-searches"><span>최근 검색</span>{recentQueries.map((recent) => <button type="button" key={recent} onClick={() => { setQuery(recent); setAppliedQuery(recent) }}>{recent}</button>)}<button className="clear" type="button" onClick={() => { setRecentQueries([]); localStorage.removeItem(recentSearchKey) }}>지우기</button></div>}
+      </div>
       <SelectMenu className="project-filter-menu" ariaLabel="프로젝트 필터" value={String(projectId)}
         options={[{ value: 'ALL', label: '모든 프로젝트' }, ...projects.map((project) => ({ value: String(project.id), label: `${project.name}${project.archived ? ' (닫힘)' : ''}`, color: project.color, muted: project.archived }))]}
         onChange={(value) => {
@@ -123,6 +167,13 @@ export function LogsPage() {
         if (filter === 'ALL') next.delete('type'); else next.set('type', filter)
         setSearchParams(next, { replace: true })
       }} key={filter}>{filter === 'ALL' ? '전체' : filter}</button>)}</div>
+    </div>
+    <div className="saved-search-bar">
+      <strong>저장된 필터</strong>
+      <div>{savedSearches.map((saved) => <span className="saved-search-chip" key={saved.id}><button onClick={() => applySavedSearch(saved)}>{saved.name}</button><button aria-label={`${saved.name} 삭제`} onClick={() => void deleteSavedSearch(saved.id).then(() => { setSavedSearches((current) => current.filter((entry) => entry.id !== saved.id)); setFilterMessage('저장된 필터를 삭제했습니다.') }).catch(() => setFilterMessage('필터를 삭제하지 못했습니다.'))}>×</button></span>)}</div>
+      {savingFilter ? <form onSubmit={(event) => { event.preventDefault(); void saveCurrentFilter() }}><input autoFocus maxLength={50} value={filterName} onChange={(event) => setFilterName(event.target.value)} placeholder="필터 이름" /><button disabled={!filterName.trim()}>저장</button><button type="button" onClick={() => setSavingFilter(false)}>취소</button></form> : <button disabled={savedSearches.length >= 10} onClick={() => setSavingFilter(true)}>현재 조건 저장</button>}
+      <small>{user?.displayName} 계정에 최대 10개까지 저장됩니다.</small>
+      {filterMessage && <span className="saved-search-message" role="status">{filterMessage}</span>}
     </div>
     <div className="result-summary"><span><strong>{totals.days}</strong>일의 기록 · <strong>{totals.items}</strong>개 항목</span>{loading && <span>불러오는 중…</span>}</div>
     <LoadState error={error} onRetry={() => void loadPage()} />
