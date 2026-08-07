@@ -82,9 +82,11 @@ export function SettingsPage() {
     try {
       if (file.size > 10 * 1024 * 1024) throw new Error()
       const data = JSON.parse(await file.text()) as BackupData
-      if (![1, 2, 3].includes(data.schemaVersion) || !Array.isArray(data.items)
+      if (![1, 2, 3, 4].includes(data.schemaVersion) || !Array.isArray(data.items)
         || data.items.some((item) => !item.workDate || !item.type || !item.content || item.content.length > 10000)
-        || data.projects?.some((project) => !project.name || project.name.length > 80)) throw new Error()
+        || data.projects?.some((project) => !project.name || project.name.length > 80)
+        || (data.savedSearches?.length ?? 0) > 10
+        || data.savedSearches?.some((filter) => !filter.name || filter.name.length > 50 || (filter.query?.length ?? 0) > 200)) throw new Error()
       setPreview(data); setFileName(file.name); setMessage('')
     } catch { setPreview(null); setMessage('지원하지 않거나 손상된 백업 파일입니다.') }
   }
@@ -147,7 +149,7 @@ export function SettingsPage() {
       <div><h2>JSON 백업 복원</h2><p>백업 파일을 확인한 뒤 현재 데이터 전체를 백업 내용으로 교체합니다. 복원 전에 현재 데이터를 먼저 내려받으세요.</p></div>
       <input ref={input} className="visually-hidden" type="file" accept="application/json,.json" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void selectFile(file) }} />
       <button className="settings-action secondary" disabled={working} onClick={() => input.current?.click()}>백업 파일 선택</button>
-      {preview && <div className="restore-preview"><div><strong>{fileName}</strong><span>스키마 v{preview.schemaVersion} · 기록 {preview.items.length}개 · 프로젝트 {preview.projects?.length ?? 0}개</span></div><button disabled={working} onClick={() => void restore()}>전체 교체 후 복원</button></div>}
+      {preview && <div className="restore-preview"><div><strong>{fileName}</strong><span>스키마 v{preview.schemaVersion} · 기록 {preview.items.length}개 · 프로젝트 {preview.projects?.length ?? 0}개 · 저장 필터 {preview.savedSearches?.length ?? 0}개</span></div><button disabled={working} onClick={() => void restore()}>전체 교체 후 복원</button></div>}
     </article>
     </section>
     <section className="settings-info"><strong>현재 데이터 저장 위치</strong><code>C:\worklog-ai\backend\data\worklog.mv.db</code><p>JSON 파일은 Git 비공개 저장소나 허용된 클라우드에 보관할 수 있습니다.</p></section>

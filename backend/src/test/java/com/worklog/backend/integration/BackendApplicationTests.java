@@ -76,6 +76,9 @@ class BackendApplicationTests {
 
 		savedSearchController.delete(saved.getId(), admin);
 		assertThat(savedSearchController.list(admin)).isEmpty();
+		workItemController.restore(new WorkItemController.RestoreRequest(
+				3, true, java.util.List.of(), java.util.List.of(), null), admin);
+		assertThat(savedSearchController.list(admin)).isEmpty();
 	}
 
 	@Test
@@ -244,20 +247,27 @@ class BackendApplicationTests {
 		workItemController.changeProject(carried.getId(), new WorkItemController.ProjectRequest(null), admin);
 		assertThat(workItemRepository.findById(source.getId()).orElseThrow().getProject()).isNull();
 		workItemController.changeProject(carried.getId(), new WorkItemController.ProjectRequest(project.getId()), admin);
+		savedSearchController.create(new SavedSearchController.Request(
+				"Worklog TODO", "30D", null, null, "TODO", project.getId(), "synced"), admin);
 
 		WorkItemController.BackupResponse backup = workItemController.backup(admin);
-		assertThat(backup.schemaVersion()).isEqualTo(3);
+		assertThat(backup.schemaVersion()).isEqualTo(4);
 		assertThat(backup.projects()).hasSize(1);
 		assertThat(backup.items()).hasSize(2);
+		assertThat(backup.savedSearches()).hasSize(1);
 
 		workItemController.restore(new WorkItemController.RestoreRequest(
-				backup.schemaVersion(), true, backup.projects(), backup.items()), admin);
+				backup.schemaVersion(), true, backup.projects(), backup.items(), backup.savedSearches()), admin);
 		assertThat(projectRepository.findAll()).hasSize(1);
 		assertThat(workItemRepository.findAll()).hasSize(2).allSatisfy(item ->
 				assertThat(item.getProject().getName()).isEqualTo("Worklog"));
 		assertThat(workItemRepository.findAll()).allSatisfy(item -> assertThat(item.getFlowId()).isNotBlank());
 
 		Project restoredProject = projectRepository.findAll().getFirst();
+		assertThat(savedSearchRepository.findAll()).singleElement().satisfies(saved -> {
+			assertThat(saved.getName()).isEqualTo("Worklog TODO");
+			assertThat(saved.getProjectId()).isEqualTo(restoredProject.getId());
+		});
 		assertThatThrownBy(() -> projectController.delete(restoredProject.getId(), false, admin))
 				.isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
 		projectController.delete(restoredProject.getId(), true, admin);

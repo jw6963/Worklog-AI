@@ -21,17 +21,22 @@ import com.worklog.backend.auth.CurrentUser;
 import com.worklog.backend.project.Project;
 import com.worklog.backend.project.ProjectRepository;
 import com.worklog.backend.user.AppUser;
+import com.worklog.backend.search.SavedSearch;
+import com.worklog.backend.search.SavedSearchRepository;
 
 @RestController
 @RequestMapping("/api/items")
 public class WorkItemController {
     private final WorkItemRepository repository;
     private final ProjectRepository projectRepository;
+    private final SavedSearchRepository savedSearchRepository;
     private final CurrentUser currentUser;
 
-    public WorkItemController(WorkItemRepository repository, ProjectRepository projectRepository, CurrentUser currentUser) {
+    public WorkItemController(WorkItemRepository repository, ProjectRepository projectRepository,
+                              SavedSearchRepository savedSearchRepository, CurrentUser currentUser) {
         this.repository = repository;
         this.projectRepository = projectRepository;
+        this.savedSearchRepository = savedSearchRepository;
         this.currentUser = currentUser;
     }
 
@@ -164,19 +169,24 @@ public class WorkItemController {
         List<BackupProject> projects = projectRepository.findByOwnerIdOrderByArchivedAscNameAsc(owner.getId()).stream()
                 .map(project -> new BackupProject(project.getId(), project.getName(), project.getColor(), project.isArchived()))
                 .toList();
-        return new BackupResponse(3, Instant.now(), projects, items);
+        List<BackupSavedSearch> savedSearches = savedSearchRepository.findByOwnerIdOrderByCreatedAtAsc(owner.getId()).stream()
+                .map(saved -> new BackupSavedSearch(saved.getName(), saved.getPeriod(), saved.getFromDate(), saved.getToDate(),
+                        saved.getItemType(), saved.getProjectId(), saved.getQuery()))
+                .toList();
+        return new BackupResponse(4, Instant.now(), projects, items, savedSearches);
     }
 
     @PostMapping("/restore")
     @org.springframework.transaction.annotation.Transactional
     public List<WorkItem> restore(@Valid @RequestBody RestoreRequest request, Authentication auth) {
         AppUser owner = currentUser.get(auth);
-        if (request.schemaVersion() < 1 || request.schemaVersion() > 3) {
+        if (request.schemaVersion() < 1 || request.schemaVersion() > 4) {
             throw new org.springframework.web.server.ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Unsupported backup schema version");
         }
         Map<Long, Project> restoredProjects = new HashMap<>();
         if (request.replaceExisting()) {
+            savedSearchRepository.deleteAll(savedSearchRepository.findByOwnerIdOrderByCreatedAtAsc(owner.getId()));
             repository.deleteByOwnerId(owner.getId());
             projectRepository.deleteByOwnerId(owner.getId());
         }
@@ -196,7 +206,16 @@ public class WorkItemController {
             restoredItem.setFlowCompletedDate(item.flowCompletedDate());
             return restoredItem;
         }).toList();
-        return repository.saveAll(restored);
+        List<WorkItem> savedItems = repository.saveAll(restored);
+        if (request.savedSearches() != null) {
+            request.savedSearches().forEach(saved -> {
+                Long mappedProjectId = saved.projectId() == null ? null
+                        : java.util.Optional.ofNullable(restoredProjects.get(saved.projectId())).map(Project::getId).orElse(null);
+                savedSearchRepository.save(new SavedSearch(saved.name(), saved.period(), saved.fromDate(), saved.toDate(),
+                        saved.itemType(), mappedProjectId, saved.query(), owner));
+            });
+        }
+        return savedItems;
     }
 
     @PatchMapping("/{id}/type")
@@ -291,9 +310,15 @@ public class WorkItemController {
     public record BackupItem(@NotNull LocalDate workDate, @NotNull WorkItem.ItemType type,
                              @NotBlank @Size(max = 10000) String content, Long projectId, @Size(max = 36) String flowId,
                              LocalDate carriedToDate, LocalDate flowCurrentDate, LocalDate flowCompletedDate) {}
+    public record BackupSavedSearch(@NotBlank @Size(max = 50) String name,
+                                    @NotBlank @jakarta.validation.constraints.Pattern(regexp = "7D|14D|30D|CUSTOM") String period,
+                                    LocalDate fromDate, LocalDate toDate,
+                                    @jakarta.validation.constraints.Pattern(regexp = "TODO|DONE|NOTE") String itemType,
+                                    Long projectId, @Size(max = 200) String query) {}
     public record BackupResponse(int schemaVersion, Instant exportedAt, List<BackupProject> projects,
-                                 List<BackupItem> items) {}
+                                 List<BackupItem> items, List<BackupSavedSearch> savedSearches) {}
     public record RestoreRequest(int schemaVersion, boolean replaceExisting,
                                  List<@Valid BackupProject> projects,
-                                 @NotNull List<@Valid BackupItem> items) {}
+                                 @NotNull List<@Valid BackupItem> items,
+                                 @Size(max = 10) List<@Valid BackupSavedSearch> savedSearches) {}
 }
