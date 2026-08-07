@@ -40,7 +40,15 @@
   .recent-list > a { grid-template-columns: 45px minmax(0, 1fr); }
   .record-counts { display: none; }
   .log-filters { flex-direction: column; }
-  .log-filters > input { min-width: 0; }
+  .log-search-box { width: 100%; min-width: 0; }
+  .log-filters > .project-filter-menu { width: 100%; flex-basis: auto; }
+  .log-filters > div:last-child { flex-wrap: wrap; }
+  .saved-search-bar { align-items: flex-start; flex-direction: column; padding: 10px; }
+  .saved-search-bar > div { width: 100%; }
+  .saved-search-bar > form { width: 100%; flex-wrap: wrap; }
+  .saved-search-bar > form input { min-width: 0; flex: 1; }
+  .saved-search-bar > small { margin-left: 0; }
+  .recent-searches { left: 0; width: 100%; }
   .period-filter { align-items: stretch; flex-direction: column; }
   .period-presets { display: grid; grid-template-columns: repeat(4, 1fr); }
   .period-presets button { padding-inline: 5px; }
