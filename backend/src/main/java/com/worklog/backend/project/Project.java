@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.worklog.backend.user.AppUser;
 
 @Entity
+@Table(indexes = @Index(name = "idx_project_owner_state_name", columnList = "owner_id, archived, name"))
 public class Project {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(indexes = @Index(name = "idx_saved_search_owner_created", columnList = "owner_id, created_at"))
 public class SavedSearch {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(length = 50, nullable = false) private String name;

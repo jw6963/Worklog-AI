@@ -10,6 +10,11 @@ import com.worklog.backend.project.Project;
 import com.worklog.backend.user.AppUser;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_work_item_owner_date", columnList = "owner_id, work_date, created_at"),
+        @Index(name = "idx_work_item_owner_project_date", columnList = "owner_id, project_id, carried_to_date, work_date"),
+        @Index(name = "idx_work_item_owner_flow", columnList = "owner_id, flow_id")
+})
 public class WorkItem {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
